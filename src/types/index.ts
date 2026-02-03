@@ -124,6 +124,7 @@ export interface ParsedTransaction {
   accountLastFour?: string;
   bankName?: string;
   referenceNumber?: string;
+  balance?: number;
   date: Date;
   rawSms: string;
 }

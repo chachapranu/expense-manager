@@ -44,6 +44,7 @@ export class UPIParser extends BaseBankParser {
       merchant: merchant || vpa || undefined,
       bankName: this.extractBankFromVPA(vpa) || 'UPI',
       referenceNumber: referenceNumber || undefined,
+      balance: this.extractBalance(body) || undefined,
       date,
       rawSms: body,
     };

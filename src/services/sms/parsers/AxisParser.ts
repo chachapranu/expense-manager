@@ -36,6 +36,7 @@ export class AxisParser extends BaseBankParser {
       accountLastFour: this.extractAccountNumber(body) || undefined,
       bankName: this.bankName,
       referenceNumber: this.extractReferenceNumber(body) || undefined,
+      balance: this.extractBalance(body) || undefined,
       date,
       rawSms: body,
     };
@@ -56,6 +57,7 @@ export class AxisParser extends BaseBankParser {
       accountLastFour: match[3].slice(-4),
       bankName: this.bankName,
       referenceNumber: match[4],
+      balance: this.extractBalance(body) || undefined,
       date,
       rawSms: body,
     };
@@ -76,6 +78,7 @@ export class AxisParser extends BaseBankParser {
       accountLastFour: match[3].slice(-4),
       bankName: this.bankName,
       referenceNumber: match[4],
+      balance: this.extractBalance(body) || undefined,
       date,
       rawSms: body,
     };
@@ -97,6 +100,7 @@ export class AxisParser extends BaseBankParser {
       accountLastFour: match[2].slice(-4),
       bankName: this.bankName,
       referenceNumber: ref?.[1] || undefined,
+      balance: this.extractBalance(body) || undefined,
       date,
       rawSms: body,
     };
@@ -119,6 +123,7 @@ export class AxisParser extends BaseBankParser {
       accountLastFour: acct?.[1] || this.extractAccountNumber(body) || undefined,
       bankName: this.bankName,
       referenceNumber: ref?.[1] || undefined,
+      balance: this.extractBalance(body) || undefined,
       date,
       rawSms: body,
     };
@@ -141,6 +146,7 @@ export class AxisParser extends BaseBankParser {
       accountLastFour: acct?.[1] || this.extractAccountNumber(body) || undefined,
       bankName: this.bankName,
       referenceNumber: ref?.[1] || undefined,
+      balance: this.extractBalance(body) || undefined,
       date,
       rawSms: body,
     };
@@ -160,6 +166,7 @@ export class AxisParser extends BaseBankParser {
       accountLastFour: match[2].slice(-4),
       bankName: this.bankName,
       referenceNumber: undefined,
+      balance: this.extractBalance(body) || undefined,
       date,
       rawSms: body,
     };

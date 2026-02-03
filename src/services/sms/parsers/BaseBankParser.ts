@@ -23,6 +23,12 @@ export abstract class BaseBankParser {
     /(?:VPA|UPI)\s*[:@]?\s*([a-zA-Z0-9._@-]+)/i,
   ];
 
+  private static readonly BALANCE_PATTERNS: readonly RegExp[] = [
+    /(?:avl\.?\s*bal|available\s*balance|avail\s*bal)[^\d]*(?:Rs\.?|INR|₹)?\s*([0-9,]+(?:\.[0-9]{1,2})?)/i,
+    /(?:bal(?:ance)?)\s*(?:is|:)\s*(?:Rs\.?|INR|₹)?\s*([0-9,]+(?:\.[0-9]{1,2})?)/i,
+    /(?:Rs\.?|INR|₹)\s*([0-9,]+(?:\.[0-9]{1,2})?)\s*(?:is your|available)/i,
+  ];
+
   private static readonly REFERENCE_PATTERNS: readonly RegExp[] = [
     /(?:ref|txn|utr|trans)[^\d]*(\d{8,})/i,
     /(?:reference|transaction)[^\d]*(\d{8,})/i,
@@ -118,6 +124,19 @@ export abstract class BaseBankParser {
         const merchant = match[1].trim();
         if (merchant.length > 2 && merchant.length < 50) {
           return merchant;
+        }
+      }
+    }
+    return null;
+  }
+
+  protected extractBalance(body: string): number | null {
+    for (const pattern of BaseBankParser.BALANCE_PATTERNS) {
+      const match = body.match(pattern);
+      if (match) {
+        const balance = parseFloat(match[1].replace(/,/g, ''));
+        if (balance >= 0) {
+          return balance;
         }
       }
     }

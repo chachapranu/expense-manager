@@ -100,6 +100,14 @@ const initializeDatabase = () => {
       created_at INTEGER NOT NULL,
       updated_at INTEGER NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS account_balances (
+      id TEXT PRIMARY KEY,
+      account_id TEXT,
+      balance REAL NOT NULL,
+      updated_at INTEGER NOT NULL,
+      raw_sms TEXT
+    );
   `);
 
   // Seed default categories if empty
@@ -140,6 +148,7 @@ export const resetDatabase = async (): Promise<void> => {
     DELETE FROM ignore_rules;
     DELETE FROM recurring_rules;
     DELETE FROM category_rules;
+    DELETE FROM account_balances;
   `);
   seedDefaultCategories();
 };
@@ -218,6 +227,14 @@ export interface AccountRow {
   is_default: number;
   created_at: number;
   updated_at: number;
+}
+
+export interface AccountBalanceRow {
+  id: string;
+  account_id: string | null;
+  balance: number;
+  updated_at: number;
+  raw_sms: string | null;
 }
 
 export interface CategoryRuleRow {

@@ -15,7 +15,8 @@ import {
 import { useFocusEffect } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Colors, CategoryColors } from '../../constants';
-import { getDatabase, generateId, AccountRow } from '../../services/database';
+import { getDatabase, generateId, AccountRow, AccountBalanceRow } from '../../services/database';
+import { formatCurrency } from '../../utils/formatters';
 import { EmptyState } from '../../components/common/EmptyState';
 import { LoadingScreen } from '../../components/common/LoadingScreen';
 
@@ -23,6 +24,7 @@ type AccountType = 'bank' | 'credit_card' | 'wallet' | 'cash';
 
 export default function AccountsScreen() {
   const [accounts, setAccounts] = useState<AccountRow[]>([]);
+  const [balances, setBalances] = useState<AccountBalanceRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -43,6 +45,10 @@ export default function AccountsScreen() {
         'SELECT * FROM accounts ORDER BY name ASC'
       );
       setAccounts(fetchedAccounts);
+      const fetchedBalances = db.getAllSync<AccountBalanceRow>(
+        'SELECT * FROM account_balances ORDER BY updated_at DESC'
+      );
+      setBalances(fetchedBalances);
     } catch (error) {
       console.error('Failed to load accounts:', error);
     } finally {
@@ -257,6 +263,27 @@ export default function AccountsScreen() {
               />
             </Surface>
           ))}
+          {balances.length > 0 ? (
+            <>
+              <Text style={styles.balanceSectionTitle}>Latest Balances (from SMS)</Text>
+              {balances.map((bal) => (
+                <Surface key={bal.id} style={styles.accountCard} elevation={1}>
+                  <List.Item
+                    title={bal.account_id || 'Unknown Account'}
+                    description={`Updated: ${new Date(bal.updated_at).toLocaleDateString()}`}
+                    left={() => (
+                      <View style={[styles.accountIcon, { backgroundColor: Colors.primary }]}>
+                        <MaterialCommunityIcons name="bank" size={24} color="#fff" />
+                      </View>
+                    )}
+                    right={() => (
+                      <Text style={styles.balanceAmount}>{formatCurrency(bal.balance)}</Text>
+                    )}
+                  />
+                </Surface>
+              ))}
+            </>
+          ) : null}
           <View style={styles.bottomSpacer} />
         </ScrollView>
       )}
@@ -443,6 +470,19 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 4,
     marginRight: 8,
+  },
+  balanceSectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.text,
+    marginTop: 24,
+    marginBottom: 8,
+  },
+  balanceAmount: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.income,
+    alignSelf: 'center',
   },
   bottomSpacer: {
     height: 80,

@@ -30,6 +30,7 @@ export class HSBCParser extends BaseBankParser {
       accountLastFour: this.extractAccountNumber(body) || undefined,
       bankName: this.bankName,
       referenceNumber: this.extractReferenceNumber(body) || undefined,
+      balance: this.extractBalance(body) || undefined,
       date,
       rawSms: body,
     };
@@ -51,6 +52,7 @@ export class HSBCParser extends BaseBankParser {
       accountLastFour: match[2],
       bankName: this.bankName,
       referenceNumber: ref?.[1] || undefined,
+      balance: this.extractBalance(body) || undefined,
       date,
       rawSms: body,
     };
@@ -72,6 +74,7 @@ export class HSBCParser extends BaseBankParser {
       accountLastFour: acct?.[1] || this.extractAccountNumber(body) || undefined,
       bankName: this.bankName,
       referenceNumber: match[2],
+      balance: this.extractBalance(body) || undefined,
       date,
       rawSms: body,
     };
@@ -93,6 +96,7 @@ export class HSBCParser extends BaseBankParser {
       accountLastFour: acct?.[1] || this.extractAccountNumber(body) || undefined,
       bankName: this.bankName,
       referenceNumber: match[3] || this.extractReferenceNumber(body) || undefined,
+      balance: this.extractBalance(body) || undefined,
       date,
       rawSms: body,
     };
@@ -112,6 +116,7 @@ export class HSBCParser extends BaseBankParser {
       accountLastFour: match[1],
       bankName: this.bankName,
       referenceNumber: this.extractReferenceNumber(body) || undefined,
+      balance: this.extractBalance(body) || undefined,
       date,
       rawSms: body,
     };
@@ -136,6 +141,7 @@ export class HSBCParser extends BaseBankParser {
       accountLastFour: acct?.[1] || this.extractAccountNumber(body) || undefined,
       bankName: this.bankName,
       referenceNumber: this.extractReferenceNumber(body) || undefined,
+      balance: this.extractBalance(body) || undefined,
       date,
       rawSms: body,
     };
@@ -157,6 +163,7 @@ export class HSBCParser extends BaseBankParser {
       accountLastFour: acct?.[1] || this.extractAccountNumber(body) || undefined,
       bankName: this.bankName,
       referenceNumber: this.extractReferenceNumber(body) || undefined,
+      balance: this.extractBalance(body) || undefined,
       date,
       rawSms: body,
     };

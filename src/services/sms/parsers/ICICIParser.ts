@@ -23,6 +23,7 @@ export class ICICIParser extends BaseBankParser {
       accountLastFour: accountLastFour || undefined,
       bankName: this.bankName,
       referenceNumber: referenceNumber || undefined,
+      balance: this.extractBalance(body) || undefined,
       date,
       rawSms: body,
     };

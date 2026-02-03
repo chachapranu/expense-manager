@@ -229,6 +229,27 @@ export class SmsService {
           ]
         );
 
+        // Save balance if extracted
+        if (parsed.balance !== undefined) {
+          try {
+            const balanceId = generateId();
+            const accountIdentifier = parsed.accountLastFour || parsed.bankName || 'unknown';
+            db.runSync(
+              `INSERT OR REPLACE INTO account_balances (id, account_id, balance, updated_at, raw_sms)
+               VALUES (
+                 COALESCE(
+                   (SELECT id FROM account_balances WHERE account_id = ?),
+                   ?
+                 ),
+                 ?, ?, ?, ?
+               )`,
+              [accountIdentifier, balanceId, accountIdentifier, parsed.balance, now, parsed.rawSms]
+            );
+          } catch (balanceErr) {
+            // Non-critical, don't fail the transaction import
+          }
+        }
+
         imported++;
       } catch (e) {
         console.error('Error saving transaction:', e);
