@@ -4,6 +4,7 @@ import { FlashList } from '@shopify/flash-list';
 import { TransactionItem } from './TransactionItem';
 import { EmptyState } from '../common/EmptyState';
 import { Colors } from '../../constants';
+import { useTransactionStore } from '../../store/useTransactionStore';
 import type { TransactionRow } from '../../services/database';
 
 interface TransactionListProps {
@@ -11,6 +12,7 @@ interface TransactionListProps {
   refreshing?: boolean;
   onRefresh?: () => void;
   onAddPress?: () => void;
+  onChangeCategory?: (id: string) => void;
   ListHeaderComponent?: React.ReactElement;
 }
 
@@ -19,13 +21,24 @@ export const TransactionList: React.FC<TransactionListProps> = ({
   refreshing = false,
   onRefresh,
   onAddPress,
+  onChangeCategory,
   ListHeaderComponent,
 }) => {
+  const { deleteTransaction } = useTransactionStore();
+
+  const handleDelete = useCallback(async (id: string) => {
+    await deleteTransaction(id);
+  }, [deleteTransaction]);
+
   const renderItem = useCallback(
     ({ item }: { item: TransactionRow }) => (
-      <TransactionItem transaction={item} />
+      <TransactionItem
+        transaction={item}
+        onDelete={handleDelete}
+        onChangeCategory={onChangeCategory}
+      />
     ),
-    []
+    [handleDelete, onChangeCategory]
   );
 
   if (transactions.length === 0) {
