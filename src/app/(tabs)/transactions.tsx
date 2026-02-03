@@ -4,7 +4,7 @@ import { Searchbar, FAB, Chip, Menu, Button } from 'react-native-paper';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Colors } from '../../constants';
+import { Colors, useThemeColors } from '../../constants';
 import { useTransactionStore } from '../../store/useTransactionStore';
 import { useCategoryStore } from '../../store/useCategoryStore';
 import { TransactionList } from '../../components/transactions/TransactionList';
@@ -22,6 +22,7 @@ export default function TransactionsScreen() {
   } = useTransactionStore();
   const { categories, loadCategories } = useCategoryStore();
 
+  const colors = useThemeColors();
   const [searchQuery, setSearchQuery] = useState('');
   const [showTypeMenu, setShowTypeMenu] = useState(false);
   const [showCategoryMenu, setShowCategoryMenu] = useState(false);
@@ -68,7 +69,7 @@ export default function TransactionsScreen() {
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.searchContainer}>
         <Searchbar
           placeholder="Search transactions..."
@@ -179,9 +180,9 @@ export default function TransactionsScreen() {
 
       <FAB
         icon="plus"
-        style={styles.fab}
+        style={[styles.fab, { backgroundColor: colors.primary }]}
         onPress={handleAddTransaction}
-        color="#fff"
+        color={colors.background}
       />
     </View>
   );

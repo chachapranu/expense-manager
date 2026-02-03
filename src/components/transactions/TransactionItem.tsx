@@ -4,7 +4,7 @@ import { Text, Surface } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Swipeable } from 'react-native-gesture-handler';
 import { useRouter } from 'expo-router';
-import { Colors } from '../../constants';
+import { Colors, useThemeColors } from '../../constants';
 import { formatDate, formatCurrency } from '../../utils/formatters';
 import { useCategoryStore } from '../../store/useCategoryStore';
 import type { TransactionRow } from '../../services/database';
@@ -22,6 +22,7 @@ export const TransactionItem: React.FC<TransactionItemProps> = React.memo(({
 }) => {
   const router = useRouter();
   const { getCategoryById } = useCategoryStore();
+  const colors = useThemeColors();
   const swipeableRef = useRef<Swipeable>(null);
   const category = transaction.category_id
     ? getCategoryById(transaction.category_id)
@@ -99,11 +100,11 @@ export const TransactionItem: React.FC<TransactionItemProps> = React.memo(({
 
   const content = (
     <Pressable onPress={handlePress}>
-      <Surface style={styles.container} elevation={1}>
+      <Surface style={[styles.container, { backgroundColor: colors.surface }]} elevation={1}>
         <View
           style={[
             styles.iconContainer,
-            { backgroundColor: category?.color || Colors.textSecondary },
+            { backgroundColor: category?.color || colors.textSecondary },
           ]}
         >
           <MaterialCommunityIcons
@@ -114,10 +115,10 @@ export const TransactionItem: React.FC<TransactionItemProps> = React.memo(({
         </View>
 
         <View style={styles.content}>
-          <Text style={styles.merchant} numberOfLines={1}>
+          <Text style={[styles.merchant, { color: colors.text }]} numberOfLines={1}>
             {transaction.merchant || category?.name || 'Unknown'}
           </Text>
-          <Text style={styles.details} numberOfLines={1}>
+          <Text style={[styles.details, { color: colors.textSecondary }]} numberOfLines={1}>
             {category?.name || 'Uncategorized'} • {formatDate(transaction.date)}
           </Text>
           {transaction.notes ? (
@@ -134,8 +135,8 @@ export const TransactionItem: React.FC<TransactionItemProps> = React.memo(({
               {
                 color:
                   transaction.type === 'credit'
-                    ? Colors.text
-                    : Colors.textSecondary,
+                    ? colors.text
+                    : colors.textSecondary,
                 fontWeight:
                   transaction.type === 'credit' ? '700' : '400',
               },
@@ -148,7 +149,7 @@ export const TransactionItem: React.FC<TransactionItemProps> = React.memo(({
             <MaterialCommunityIcons
               name="message-text"
               size={12}
-              color={Colors.textSecondary}
+              color={colors.textSecondary}
               style={styles.sourceIcon}
             />
           ) : null}

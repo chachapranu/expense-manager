@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { PaperProvider, MD3LightTheme } from 'react-native-paper';
+import { PaperProvider, MD3LightTheme, MD3DarkTheme } from 'react-native-paper';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
@@ -9,21 +9,26 @@ import { Text } from 'react-native-paper';
 import * as SplashScreen from 'expo-splash-screen';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { getDatabase } from '../services/database';
-import { Colors } from '../constants';
+import { Colors, DarkColors } from '../constants';
+import { useSettingsStore } from '../store/useSettingsStore';
 
 SplashScreen.preventAutoHideAsync();
 
-const theme = {
-  ...MD3LightTheme,
-  colors: {
-    ...MD3LightTheme.colors,
-    primary: Colors.primary,
-    secondary: Colors.secondary,
-    error: Colors.error,
-    background: Colors.background,
-    surface: Colors.surface,
-  },
-};
+function getTheme(isDarkMode: boolean) {
+  const colors = isDarkMode ? DarkColors : Colors;
+  const base = isDarkMode ? MD3DarkTheme : MD3LightTheme;
+  return {
+    ...base,
+    colors: {
+      ...base.colors,
+      primary: colors.primary,
+      secondary: colors.secondary,
+      error: colors.error,
+      background: colors.background,
+      surface: colors.surface,
+    },
+  };
+}
 
 async function authenticate(): Promise<boolean> {
   const hasHardware = await LocalAuthentication.hasHardwareAsync();
@@ -41,11 +46,15 @@ async function authenticate(): Promise<boolean> {
 export default function RootLayout() {
   const [isReady, setIsReady] = useState(false);
   const [authFailed, setAuthFailed] = useState(false);
+  const { isDarkMode, loadSettings } = useSettingsStore();
+  const colors = isDarkMode ? DarkColors : Colors;
+  const theme = getTheme(isDarkMode);
 
   useEffect(() => {
     const initializeApp = async () => {
       try {
         getDatabase();
+        await loadSettings();
         const authed = await authenticate();
         if (!authed) {
           setAuthFailed(true);
@@ -67,19 +76,19 @@ export default function RootLayout() {
 
   if (authFailed) {
     return (
-      <View style={styles.authContainer}>
-        <Text style={styles.authTitle}>Locked</Text>
-        <Text style={styles.authSubtitle}>
+      <View style={[styles.authContainer, { backgroundColor: colors.background }]}>
+        <Text style={[styles.authTitle, { color: colors.text }]}>Locked</Text>
+        <Text style={[styles.authSubtitle, { color: colors.textSecondary }]}>
           Authentication is required to use Expense Manager
         </Text>
         <TouchableOpacity
-          style={styles.retryButton}
+          style={[styles.retryButton, { backgroundColor: colors.primary }]}
           onPress={async () => {
             const authed = await authenticate();
             if (authed) setAuthFailed(false);
           }}
         >
-          <Text style={styles.retryText}>Try Again</Text>
+          <Text style={[styles.retryText, { color: isDarkMode ? '#000000' : '#FFFFFF' }]}>Try Again</Text>
         </TouchableOpacity>
       </View>
     );
@@ -89,15 +98,13 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <PaperProvider theme={theme}>
-          <StatusBar style="auto" />
+          <StatusBar style={isDarkMode ? 'light' : 'dark'} />
           <Stack
             screenOptions={{
               headerStyle: {
-                backgroundColor: '#FFFFFF',
-                borderBottomWidth: 1,
-                borderBottomColor: '#E5E5E5',
+                backgroundColor: colors.surface,
               } as any,
-              headerTintColor: '#000000',
+              headerTintColor: colors.text,
               headerShadowVisible: false,
               headerTitleStyle: {
                 fontWeight: 'bold',
@@ -157,29 +164,24 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: Colors.background,
     padding: 32,
   },
   authTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: Colors.text,
     marginBottom: 12,
   },
   authSubtitle: {
     fontSize: 16,
-    color: Colors.textSecondary,
     textAlign: 'center',
     marginBottom: 32,
   },
   retryButton: {
-    backgroundColor: Colors.primary,
     paddingHorizontal: 32,
     paddingVertical: 14,
     borderRadius: 8,
   },
   retryText: {
-    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
   },

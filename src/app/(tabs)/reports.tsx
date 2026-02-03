@@ -9,7 +9,7 @@ import {
   startOfMonth,
   endOfMonth,
 } from 'date-fns';
-import { Colors } from '../../constants';
+import { Colors, useThemeColors } from '../../constants';
 import { formatCurrency } from '../../utils/formatters';
 import { useTransactionStore } from '../../store/useTransactionStore';
 import { useCategoryStore } from '../../store/useCategoryStore';
@@ -21,6 +21,7 @@ type TimeRange = '1M' | '3M' | '6M' | '1Y';
 export default function ReportsScreen() {
   const { transactions, isLoading, loadTransactions } = useTransactionStore();
   const { categories, loadCategories, getCategoryById } = useCategoryStore();
+  const colors = useThemeColors();
   const [timeRange, setTimeRange] = useState<TimeRange>('1M');
 
   useFocusEffect(
@@ -87,7 +88,7 @@ export default function ReportsScreen() {
 
   if (filteredTransactions.length === 0) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.filterContainer}>
           <SegmentedButtons
             value={timeRange}
@@ -112,13 +113,13 @@ export default function ReportsScreen() {
 
   return (
     <ScrollView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.background }]}
       showsVerticalScrollIndicator={false}
       refreshControl={
         <RefreshControl
           refreshing={isLoading}
           onRefresh={loadTransactions}
-          colors={[Colors.primary]}
+          colors={[colors.primary]}
         />
       }
     >
@@ -137,10 +138,10 @@ export default function ReportsScreen() {
       </View>
 
       {/* Total Expense Card */}
-      <Surface style={styles.totalCard} elevation={0}>
-        <Text style={styles.totalLabel}>Total Expenses</Text>
-        <Text style={styles.totalAmount}>{formatCurrency(totalExpense)}</Text>
-        <Text style={styles.totalPeriod}>
+      <Surface style={[styles.totalCard, { backgroundColor: colors.surface, borderColor: colors.border }]} elevation={0}>
+        <Text style={[styles.totalLabel, { color: colors.textSecondary }]}>Total Expenses</Text>
+        <Text style={[styles.totalAmount, { color: colors.text }]}>{formatCurrency(totalExpense)}</Text>
+        <Text style={[styles.totalPeriod, { color: colors.textSecondary }]}>
           {timeRange === '1M'
             ? 'This month'
             : timeRange === '3M'

@@ -1,4 +1,5 @@
 import { Category } from '../types';
+import { useSettingsStore } from '../store/useSettingsStore';
 
 // Theme colors
 export const Colors = {
@@ -16,6 +17,28 @@ export const Colors = {
   income: '#000000',
   expense: '#666666',
   disabled: '#CCCCCC',
+};
+
+export const DarkColors = {
+  primary: '#FFFFFF',
+  primaryDark: '#FFFFFF',
+  secondary: '#AAAAAA',
+  background: '#121212',
+  surface: '#1E1E1E',
+  error: '#CF6679',
+  success: '#FFFFFF',
+  warning: '#AAAAAA',
+  text: '#FFFFFF',
+  textSecondary: '#AAAAAA',
+  border: '#333333',
+  income: '#FFFFFF',
+  expense: '#AAAAAA',
+  disabled: '#555555',
+};
+
+export const useThemeColors = () => {
+  const isDarkMode = useSettingsStore((s) => s.isDarkMode);
+  return isDarkMode ? DarkColors : Colors;
 };
 
 // Category icons (Material Design icon names)

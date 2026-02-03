@@ -3,7 +3,7 @@ import { StyleSheet, View, RefreshControl } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { TransactionItem } from './TransactionItem';
 import { EmptyState } from '../common/EmptyState';
-import { Colors } from '../../constants';
+import { Colors, useThemeColors } from '../../constants';
 import { useTransactionStore } from '../../store/useTransactionStore';
 import type { TransactionRow } from '../../services/database';
 
@@ -25,6 +25,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
   ListHeaderComponent,
 }) => {
   const { deleteTransaction } = useTransactionStore();
+  const colors = useThemeColors();
 
   const handleDelete = useCallback(async (id: string) => {
     await deleteTransaction(id);
@@ -43,7 +44,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
 
   if (transactions.length === 0) {
     return (
-      <View style={styles.emptyContainer}>
+      <View style={[styles.emptyContainer, { backgroundColor: colors.background }]}>
         {ListHeaderComponent}
         <EmptyState
           icon="receipt"
@@ -69,7 +70,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={[Colors.primary]}
+            colors={[colors.primary]}
           />
         ) : undefined
       }

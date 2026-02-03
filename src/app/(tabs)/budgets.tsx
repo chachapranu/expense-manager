@@ -13,7 +13,7 @@ import {
 } from 'react-native-paper';
 import { useFocusEffect } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Colors, BudgetThresholds } from '../../constants';
+import { Colors, BudgetThresholds, useThemeColors } from '../../constants';
 import { formatCurrency } from '../../utils/formatters';
 import { useBudgetStore } from '../../store/useBudgetStore';
 import { useCategoryStore } from '../../store/useCategoryStore';
@@ -31,6 +31,7 @@ export default function BudgetsScreen() {
   } = useBudgetStore();
   const { categories, loadCategories, getExpenseCategories } = useCategoryStore();
 
+  const colors = useThemeColors();
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedBudget, setSelectedBudget] = useState<BudgetWithProgress | null>(null);
@@ -206,7 +207,7 @@ export default function BudgetsScreen() {
   }, []);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {budgetsWithProgress.length === 0 ? (
         <EmptyState
           icon="wallet"
@@ -234,9 +235,9 @@ export default function BudgetsScreen() {
 
       <FAB
         icon="plus"
-        style={styles.fab}
+        style={[styles.fab, { backgroundColor: colors.primary }]}
         onPress={() => setShowAddModal(true)}
-        color="#fff"
+        color={colors.background}
         disabled={availableCategories.length === 0}
       />
 

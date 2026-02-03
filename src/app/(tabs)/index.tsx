@@ -3,7 +3,7 @@ import { StyleSheet, View, ScrollView, RefreshControl, Platform } from 'react-na
 import { Text, Surface, FAB, IconButton, Snackbar } from 'react-native-paper';
 import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Colors, BudgetThresholds } from '../../constants';
+import { Colors, BudgetThresholds, useThemeColors } from '../../constants';
 import { formatCurrency, formatMonth } from '../../utils/formatters';
 import { useTransactionStore } from '../../store/useTransactionStore';
 import { useCategoryStore } from '../../store/useCategoryStore';
@@ -29,6 +29,7 @@ export default function DashboardScreen() {
   const { loadCategories } = useCategoryStore();
   const { budgetsWithProgress, loadBudgets, getBudgetAlerts } = useBudgetStore();
 
+  const colors = useThemeColors();
   const [isSyncing, setIsSyncing] = useState(false);
   const [snackbar, setSnackbar] = useState<string | null>(null);
 
@@ -90,9 +91,9 @@ export default function DashboardScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView
-        style={styles.scrollView}
+        style={[styles.scrollView, { backgroundColor: colors.background }]}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -101,24 +102,24 @@ export default function DashboardScreen() {
               loadTransactions();
               loadBudgets();
             }}
-            colors={[Colors.primary]}
+            colors={[colors.primary]}
           />
         }
       >
         {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.monthLabel}>{formatMonth(new Date())}</Text>
+        <View style={[styles.header, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.monthLabel, { color: colors.text }]}>{formatMonth(new Date())}</Text>
           <View style={styles.headerActions}>
             <IconButton
               icon="sync"
-              iconColor={isSyncing ? Colors.textSecondary : '#000000'}
+              iconColor={isSyncing ? colors.textSecondary : colors.text}
               size={24}
               onPress={() => runSmsSync(false)}
               disabled={isSyncing}
             />
             <IconButton
               icon="cog"
-              iconColor="#000000"
+              iconColor={colors.text}
               size={24}
               onPress={handleSettings}
             />
@@ -127,30 +128,30 @@ export default function DashboardScreen() {
 
         {/* Summary Cards */}
         <View style={styles.summaryContainer}>
-          <Surface style={[styles.summaryCard, styles.incomeCard]} elevation={0}>
-            <MaterialCommunityIcons name="arrow-down-circle" size={28} color={Colors.income} />
-            <Text style={styles.summaryLabel}>Income</Text>
-            <Text style={[styles.summaryAmount, { color: Colors.income, fontWeight: '700' }]}>
+          <Surface style={[styles.summaryCard, styles.incomeCard, { backgroundColor: colors.surface, borderColor: colors.border }]} elevation={0}>
+            <MaterialCommunityIcons name="arrow-down-circle" size={28} color={colors.income} />
+            <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Income</Text>
+            <Text style={[styles.summaryAmount, { color: colors.income, fontWeight: '700' }]}>
               {formatCurrency(monthlyIncome)}
             </Text>
           </Surface>
 
-          <Surface style={[styles.summaryCard, styles.expenseCard]} elevation={0}>
-            <MaterialCommunityIcons name="arrow-up-circle" size={28} color={Colors.expense} />
-            <Text style={styles.summaryLabel}>Expense</Text>
-            <Text style={[styles.summaryAmount, { color: Colors.expense, fontWeight: '400' }]}>
+          <Surface style={[styles.summaryCard, styles.expenseCard, { backgroundColor: colors.surface, borderColor: colors.border }]} elevation={0}>
+            <MaterialCommunityIcons name="arrow-up-circle" size={28} color={colors.expense} />
+            <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Expense</Text>
+            <Text style={[styles.summaryAmount, { color: colors.expense, fontWeight: '400' }]}>
               {formatCurrency(monthlyExpense)}
             </Text>
           </Surface>
         </View>
 
         {/* Balance Card */}
-        <Surface style={styles.balanceCard} elevation={0}>
-          <Text style={styles.balanceLabel}>Balance</Text>
+        <Surface style={[styles.balanceCard, { backgroundColor: colors.surface, borderColor: colors.border }]} elevation={0}>
+          <Text style={[styles.balanceLabel, { color: colors.textSecondary }]}>Balance</Text>
           <Text
             style={[
               styles.balanceAmount,
-              { color: balance >= 0 ? Colors.income : Colors.expense },
+              { color: balance >= 0 ? colors.income : colors.expense },
             ]}
           >
             {formatCurrency(Math.abs(balance))}
@@ -158,9 +159,9 @@ export default function DashboardScreen() {
         </Surface>
 
         {/* Today's Expense */}
-        <Surface style={styles.todayCard} elevation={0}>
-          <Text style={styles.todayLabel}>Today</Text>
-          <Text style={styles.todayAmount}>{formatCurrency(dailyExpense)}</Text>
+        <Surface style={[styles.todayCard, { backgroundColor: colors.surface, borderColor: colors.border }]} elevation={0}>
+          <Text style={[styles.todayLabel, { color: colors.textSecondary }]}>Today</Text>
+          <Text style={[styles.todayAmount, { color: colors.expense }]}>{formatCurrency(dailyExpense)}</Text>
         </Surface>
 
         {/* Top Merchants */}
@@ -282,9 +283,9 @@ export default function DashboardScreen() {
 
       <FAB
         icon="plus"
-        style={styles.fab}
+        style={[styles.fab, { backgroundColor: colors.primary }]}
         onPress={handleAddTransaction}
-        color="#fff"
+        color={colors.background}
       />
 
       <Snackbar

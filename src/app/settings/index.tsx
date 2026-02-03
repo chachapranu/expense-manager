@@ -1,13 +1,16 @@
 import React from 'react';
 import { StyleSheet, View, ScrollView, Alert } from 'react-native';
-import { List, Divider, Text } from 'react-native-paper';
+import { List, Divider, Text, Switch } from 'react-native-paper';
 import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Colors } from '../../constants';
+import { useThemeColors } from '../../constants';
 import { resetDatabase } from '../../services/database';
+import { useSettingsStore } from '../../store/useSettingsStore';
 
 export default function SettingsScreen() {
   const router = useRouter();
+  const colors = useThemeColors();
+  const { isDarkMode, toggleDarkMode } = useSettingsStore();
 
   const handleResetData = () => {
     Alert.alert(
@@ -33,7 +36,21 @@ export default function SettingsScreen() {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
+      <List.Section>
+        <List.Subheader>Appearance</List.Subheader>
+        <List.Item
+          title="Dark Mode"
+          description={isDarkMode ? 'On' : 'Off'}
+          left={(props) => <List.Icon {...props} icon="brightness-6" />}
+          right={() => (
+            <Switch value={isDarkMode} onValueChange={toggleDarkMode} />
+          )}
+        />
+      </List.Section>
+
+      <Divider />
+
       <List.Section>
         <List.Subheader>SMS Settings</List.Subheader>
         <List.Item
@@ -107,15 +124,15 @@ export default function SettingsScreen() {
           title="Reset All Data"
           description="Delete all transactions and settings"
           left={(props) => (
-            <List.Icon {...props} icon="delete-forever" color={Colors.error} />
+            <List.Icon {...props} icon="delete-forever" color={colors.error} />
           )}
-          titleStyle={{ color: Colors.error }}
+          titleStyle={{ color: colors.error }}
           onPress={handleResetData}
         />
       </List.Section>
 
       <View style={styles.footer}>
-        <Text style={styles.version}>Expense Manager v1.0.0</Text>
+        <Text style={[styles.version, { color: colors.textSecondary }]}>Expense Manager v1.0.0</Text>
       </View>
     </ScrollView>
   );
@@ -124,7 +141,6 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
   },
   footer: {
     padding: 24,
@@ -132,6 +148,5 @@ const styles = StyleSheet.create({
   },
   version: {
     fontSize: 12,
-    color: Colors.textSecondary,
   },
 });
