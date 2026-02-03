@@ -32,7 +32,21 @@
       "@react-native-community/datetimepicker",
       "expo-font",
       "expo-local-authentication",
-      "expo-notifications"
+      "expo-notifications",
+      ["react-native-android-widget", {
+        "widgets": [
+          {
+            "name": "QuickAdd",
+            "label": "Quick Add Expense",
+            "minWidth": "250dp",
+            "minHeight": "110dp",
+            "targetCellWidth": 3,
+            "targetCellHeight": 2,
+            "description": "Quickly add common expenses",
+            "previewImage": "./assets/icon.png"
+          }
+        ]
+      }]
     ],
     "experiments": {
       "typedRoutes": true
