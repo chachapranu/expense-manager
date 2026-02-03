@@ -41,6 +41,7 @@ interface TransactionState {
   getDailyTotal: (type: TransactionType) => number;
   getWeeklyTotal: (type: TransactionType) => number;
   getRecentTransactions: (limit?: number) => TransactionRow[];
+  getTopMerchants: (limit?: number) => { merchant: string; total: number }[];
   getTransactionById: (id: string) => TransactionRow | undefined;
 }
 
@@ -228,6 +229,20 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
     return db.getAllSync<TransactionRow>(
       'SELECT * FROM transactions ORDER BY date DESC LIMIT ?',
       [limit]
+    );
+  },
+
+  getTopMerchants: (limit = 5) => {
+    const db = getDatabase();
+    const now = new Date();
+    const start = startOfMonth(now).getTime();
+    const end = endOfMonth(now).getTime();
+
+    return db.getAllSync<{ merchant: string; total: number }>(
+      `SELECT merchant, SUM(amount) as total FROM transactions
+       WHERE type = 'debit' AND date >= ? AND date <= ? AND merchant IS NOT NULL AND merchant != ''
+       GROUP BY merchant ORDER BY total DESC LIMIT ?`,
+      [start, end, limit]
     );
   },
 
