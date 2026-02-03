@@ -16,11 +16,12 @@ import { useFocusEffect } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { format, addDays, addWeeks, addMonths, addYears } from 'date-fns';
 import { Colors } from '../../constants';
-import { formatCurrency } from '../../utils';
+import { formatCurrency } from '../../utils/formatters';
 import { getDatabase, generateId, RecurringRuleRow } from '../../services/database';
 import type { RecurringFrequency, TransactionType } from '../../types';
-import { useCategoryStore } from '../../store';
-import { EmptyState, LoadingScreen } from '../../components/common';
+import { useCategoryStore } from '../../store/useCategoryStore';
+import { EmptyState } from '../../components/common/EmptyState';
+import { LoadingScreen } from '../../components/common/LoadingScreen';
 
 export default function RecurringScreen() {
   const { categories, loadCategories, getCategoryById } = useCategoryStore();
@@ -394,7 +395,7 @@ export default function RecurringScreen() {
               style={styles.segmentedButtons}
             />
 
-            {frequency === 'monthly' && (
+            {frequency === 'monthly' ? (
               <TextInput
                 mode="outlined"
                 label="Day of Month (1-28)"
@@ -403,7 +404,7 @@ export default function RecurringScreen() {
                 keyboardType="number-pad"
                 style={styles.input}
               />
-            )}
+            ) : null}
 
             <Button
               mode="outlined"
@@ -429,7 +430,7 @@ export default function RecurringScreen() {
             </Button>
 
             <View style={styles.modalActions}>
-              {showEditModal && (
+              {showEditModal ? (
                 <Button
                   mode="outlined"
                   onPress={handleDeleteRule}
@@ -438,7 +439,7 @@ export default function RecurringScreen() {
                 >
                   Delete
                 </Button>
-              )}
+              ) : null}
               <View style={styles.actionSpacer} />
               <Button
                 mode="outlined"

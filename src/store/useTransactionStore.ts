@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { getDatabase, generateId, TransactionRow } from '../services/database';
 import type { TransactionType, TransactionSource, TransactionFilter } from '../types';
-import { startOfMonth, endOfMonth, startOfWeek, endOfWeek } from 'date-fns';
+import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, startOfDay, endOfDay } from 'date-fns';
 
 interface TransactionState {
   transactions: TransactionRow[];
@@ -38,6 +38,7 @@ interface TransactionState {
   setFilter: (filter: Partial<TransactionFilter>) => void;
   clearFilter: () => void;
   getMonthlyTotal: (type: TransactionType) => number;
+  getDailyTotal: (type: TransactionType) => number;
   getWeeklyTotal: (type: TransactionType) => number;
   getRecentTransactions: (limit?: number) => TransactionRow[];
   getTransactionById: (id: string) => TransactionRow | undefined;
@@ -184,29 +185,50 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
   },
 
   getMonthlyTotal: (type) => {
-    const { transactions } = get();
+    const db = getDatabase();
     const now = new Date();
     const start = startOfMonth(now).getTime();
     const end = endOfMonth(now).getTime();
 
-    return transactions
-      .filter((t) => t.type === type && t.date >= start && t.date <= end)
-      .reduce((sum, t) => sum + t.amount, 0);
+    const result = db.getFirstSync<{ total: number | null }>(
+      'SELECT SUM(amount) as total FROM transactions WHERE type = ? AND date >= ? AND date <= ?',
+      [type, start, end]
+    );
+    return result?.total ?? 0;
+  },
+
+  getDailyTotal: (type) => {
+    const db = getDatabase();
+    const now = new Date();
+    const start = startOfDay(now).getTime();
+    const end = endOfDay(now).getTime();
+
+    const result = db.getFirstSync<{ total: number | null }>(
+      'SELECT SUM(amount) as total FROM transactions WHERE type = ? AND date >= ? AND date <= ?',
+      [type, start, end]
+    );
+    return result?.total ?? 0;
   },
 
   getWeeklyTotal: (type) => {
-    const { transactions } = get();
+    const db = getDatabase();
     const now = new Date();
     const start = startOfWeek(now).getTime();
     const end = endOfWeek(now).getTime();
 
-    return transactions
-      .filter((t) => t.type === type && t.date >= start && t.date <= end)
-      .reduce((sum, t) => sum + t.amount, 0);
+    const result = db.getFirstSync<{ total: number | null }>(
+      'SELECT SUM(amount) as total FROM transactions WHERE type = ? AND date >= ? AND date <= ?',
+      [type, start, end]
+    );
+    return result?.total ?? 0;
   },
 
   getRecentTransactions: (limit = 5) => {
-    return get().transactions.slice(0, limit);
+    const db = getDatabase();
+    return db.getAllSync<TransactionRow>(
+      'SELECT * FROM transactions ORDER BY date DESC LIMIT ?',
+      [limit]
+    );
   },
 
   getTransactionById: (id) => {

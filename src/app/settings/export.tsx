@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, ScrollView, Alert } from 'react-native';
+import { StyleSheet, View, ScrollView, Alert, Platform } from 'react-native';
 import {
   Text,
   Surface,
@@ -12,9 +12,12 @@ import { File, Paths } from 'expo-file-system';
 import { isAvailableAsync, shareAsync } from 'expo-sharing';
 import { format, subMonths, startOfMonth, endOfMonth } from 'date-fns';
 import { Colors } from '../../constants';
-import { useTransactionStore, useCategoryStore } from '../../store';
+import { useTransactionStore } from '../../store/useTransactionStore';
+import { useCategoryStore } from '../../store/useCategoryStore';
+import { smsService } from '../../services/sms/SmsService';
 
 type DateRange = '1M' | '3M' | '6M' | '1Y' | 'ALL';
+type SmsDumpRange = '7' | '30' | '90';
 
 export default function ExportScreen() {
   const { transactions, loadTransactions } = useTransactionStore();
@@ -23,6 +26,8 @@ export default function ExportScreen() {
   const [includeNotes, setIncludeNotes] = useState(true);
   const [includeSms, setIncludeSms] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [isDumping, setIsDumping] = useState(false);
+  const [smsDumpRange, setSmsDumpRange] = useState<SmsDumpRange>('90');
 
   React.useEffect(() => {
     loadCategories();
@@ -125,6 +130,53 @@ export default function ExportScreen() {
     }
   };
 
+  const handleDumpSms = async () => {
+    if (Platform.OS !== 'android') {
+      Alert.alert('Not Supported', 'SMS reading is only available on Android');
+      return;
+    }
+
+    setIsDumping(true);
+
+    try {
+      const daysBack = parseInt(smsDumpRange, 10);
+      const messages = await smsService.readBankSms(daysBack);
+
+      if (messages.length === 0) {
+        Alert.alert('No SMS Found', `No bank SMS found in the last ${daysBack} days.`);
+        return;
+      }
+
+      const dumpData = messages.map((sms) => ({
+        sender: sms.address,
+        body: sms.body,
+        date: sms.date,
+      }));
+
+      const json = JSON.stringify(dumpData, null, 2);
+      const filename = `bank-sms-dump-${format(new Date(), 'yyyy-MM-dd')}.json`;
+      const file = new File(Paths.cache, filename);
+
+      await file.write(json);
+
+      const canShare = await isAvailableAsync();
+      if (canShare) {
+        await shareAsync(file.uri, {
+          mimeType: 'application/json',
+          dialogTitle: 'Export Raw Bank SMS',
+        });
+      } else {
+        Alert.alert('Export Complete', `File saved to: ${file.uri}`);
+      }
+    } catch (error) {
+      console.error('SMS dump error:', error);
+      const message = error instanceof Error ? error.message : 'Failed to dump SMS';
+      Alert.alert('Error', message);
+    } finally {
+      setIsDumping(false);
+    }
+  };
+
   const filteredCount = filterTransactions().length;
 
   return (
@@ -204,6 +256,44 @@ export default function ExportScreen() {
       >
         {isExporting ? 'Exporting...' : 'Export to CSV'}
       </Button>
+
+      {Platform.OS === 'android' && (
+        <>
+          <Surface style={styles.card} elevation={1}>
+            <Text style={styles.sectionTitle}>Dump Raw SMS</Text>
+            <Text style={styles.description}>
+              Export all bank SMS (including unparsed messages) as a JSON file.
+              Useful for improving SMS parsing and auto-categorization.
+            </Text>
+
+            <Text style={[styles.columnsTitle, { marginBottom: 8 }]}>
+              Time range
+            </Text>
+            <SegmentedButtons
+              value={smsDumpRange}
+              onValueChange={(value) => setSmsDumpRange(value as SmsDumpRange)}
+              buttons={[
+                { value: '7', label: '7 days' },
+                { value: '30', label: '30 days' },
+                { value: '90', label: '90 days' },
+              ]}
+              style={styles.segmentedButtons}
+            />
+          </Surface>
+
+          <Button
+            mode="contained"
+            onPress={handleDumpSms}
+            loading={isDumping}
+            disabled={isDumping}
+            icon="message-text-outline"
+            style={styles.exportButton}
+            contentStyle={styles.exportButtonContent}
+          >
+            {isDumping ? 'Reading SMS...' : 'Dump All Bank SMS'}
+          </Button>
+        </>
+      )}
     </ScrollView>
   );
 }

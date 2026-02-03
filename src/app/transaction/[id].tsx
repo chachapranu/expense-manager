@@ -4,10 +4,11 @@ import { Text, Surface, Button, Divider } from 'react-native-paper';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Colors } from '../../constants';
-import { formatCurrency, formatDateTime } from '../../utils';
-import { useTransactionStore, useCategoryStore } from '../../store';
-import { LoadingScreen } from '../../components/common';
-import { TransactionForm } from '../../components/transactions';
+import { formatCurrency, formatDateTime } from '../../utils/formatters';
+import { useTransactionStore } from '../../store/useTransactionStore';
+import { useCategoryStore } from '../../store/useCategoryStore';
+import { LoadingScreen } from '../../components/common/LoadingScreen';
+import { TransactionForm } from '../../components/transactions/TransactionForm';
 
 export default function TransactionDetailScreen() {
   const router = useRouter();
@@ -201,7 +202,7 @@ export default function TransactionDetailScreen() {
           </View>
         </View>
 
-        {transaction.notes && (
+        {transaction.notes ? (
           <View style={styles.detailRow}>
             <MaterialCommunityIcons
               name="note-text"
@@ -213,7 +214,7 @@ export default function TransactionDetailScreen() {
               <Text style={styles.detailValue}>{transaction.notes}</Text>
             </View>
           </View>
-        )}
+        ) : null}
 
         <View style={styles.detailRow}>
           <MaterialCommunityIcons
@@ -229,7 +230,7 @@ export default function TransactionDetailScreen() {
           </View>
         </View>
 
-        {transaction.reference_number && (
+        {transaction.reference_number ? (
           <View style={styles.detailRow}>
             <MaterialCommunityIcons
               name="pound"
@@ -243,16 +244,16 @@ export default function TransactionDetailScreen() {
               </Text>
             </View>
           </View>
-        )}
+        ) : null}
       </Surface>
 
       {/* Raw SMS */}
-      {transaction.raw_sms && (
+      {transaction.raw_sms ? (
         <Surface style={styles.card} elevation={1}>
           <Text style={styles.sectionTitle}>Original SMS</Text>
           <Text style={styles.rawSms}>{transaction.raw_sms}</Text>
         </Surface>
-      )}
+      ) : null}
 
       {/* Actions */}
       <View style={styles.actions}>

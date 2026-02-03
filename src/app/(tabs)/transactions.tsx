@@ -1,12 +1,13 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Searchbar, FAB, Chip, Menu, Button } from 'react-native-paper';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Colors } from '../../constants';
-import { useTransactionStore, useCategoryStore } from '../../store';
-import { TransactionList } from '../../components/transactions';
+import { useTransactionStore } from '../../store/useTransactionStore';
+import { useCategoryStore } from '../../store/useCategoryStore';
+import { TransactionList } from '../../components/transactions/TransactionList';
 import type { TransactionType } from '../../types';
 
 export default function TransactionsScreen() {
@@ -56,12 +57,15 @@ export default function TransactionsScreen() {
     router.push('/transaction/add');
   };
 
-  const hasActiveFilters =
-    filter.type || filter.categoryId || filter.search;
+  const hasActiveFilters = useMemo(
+    () => filter.type || filter.categoryId || filter.search,
+    [filter.type, filter.categoryId, filter.search]
+  );
 
-  const selectedCategory = filter.categoryId
-    ? categories.find((c) => c.id === filter.categoryId)
-    : null;
+  const selectedCategory = useMemo(
+    () => filter.categoryId ? categories.find((c) => c.id === filter.categoryId) : null,
+    [filter.categoryId, categories]
+  );
 
   return (
     <View style={styles.container}>
@@ -154,7 +158,7 @@ export default function TransactionsScreen() {
           ))}
         </Menu>
 
-        {hasActiveFilters && (
+        {hasActiveFilters ? (
           <Chip
             mode="outlined"
             onPress={handleClearFilters}
@@ -163,7 +167,7 @@ export default function TransactionsScreen() {
           >
             Clear
           </Chip>
-        )}
+        ) : null}
       </View>
 
       <TransactionList

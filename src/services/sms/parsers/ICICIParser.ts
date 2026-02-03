@@ -10,6 +10,8 @@ export class ICICIParser extends BaseBankParser {
     if (!amount) return null;
 
     const type = this.extractTransactionType(body);
+    if (!type) return null;
+
     const accountLastFour = this.extractAccountNumber(body);
     const merchant = this.extractMerchant(body);
     const referenceNumber = this.extractReferenceNumber(body);

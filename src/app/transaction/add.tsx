@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import { TransactionForm } from '../../components/transactions';
-import { useTransactionStore } from '../../store';
+import { TransactionForm } from '../../components/transactions/TransactionForm';
+import { useTransactionStore } from '../../store/useTransactionStore';
 
 export default function AddTransactionScreen() {
   const router = useRouter();

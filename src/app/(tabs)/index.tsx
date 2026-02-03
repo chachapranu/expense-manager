@@ -1,13 +1,19 @@
-import React, { useEffect, useCallback } from 'react';
-import { StyleSheet, View, ScrollView, RefreshControl } from 'react-native';
-import { Text, Surface, FAB, IconButton } from 'react-native-paper';
+import React, { useEffect, useCallback, useMemo, useState, useRef } from 'react';
+import { StyleSheet, View, ScrollView, RefreshControl, Platform } from 'react-native';
+import { Text, Surface, FAB, IconButton, Snackbar } from 'react-native-paper';
 import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Colors, BudgetThresholds } from '../../constants';
-import { formatCurrency, formatMonth } from '../../utils';
-import { useTransactionStore, useCategoryStore, useBudgetStore } from '../../store';
-import { TransactionItem } from '../../components/transactions';
+import { formatCurrency, formatMonth } from '../../utils/formatters';
+import { useTransactionStore } from '../../store/useTransactionStore';
+import { useCategoryStore } from '../../store/useCategoryStore';
+import { useBudgetStore } from '../../store/useBudgetStore';
+import { TransactionItem } from '../../components/transactions/TransactionItem';
 import { useFocusEffect } from 'expo-router';
+import { smsService } from '../../services/sms/SmsService';
+
+const AUTO_SYNC_COOLDOWN_MS = 5 * 60 * 1000; // 5 minutes
+let lastAutoSyncTime = 0;
 
 export default function DashboardScreen() {
   const router = useRouter();
@@ -16,24 +22,62 @@ export default function DashboardScreen() {
     isLoading,
     loadTransactions,
     getMonthlyTotal,
+    getDailyTotal,
     getRecentTransactions,
   } = useTransactionStore();
   const { loadCategories } = useCategoryStore();
   const { budgetsWithProgress, loadBudgets, getBudgetAlerts } = useBudgetStore();
+
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [snackbar, setSnackbar] = useState<string | null>(null);
+
+  const runSmsSync = useCallback(async (isAuto: boolean) => {
+    if (Platform.OS !== 'android') return;
+    if (isSyncing) return;
+
+    try {
+      const hasPermission = await smsService.checkPermission();
+      if (!hasPermission) return;
+
+      setIsSyncing(true);
+      const result = await smsService.syncTransactions(7);
+      if (result.imported > 0) {
+        await loadTransactions();
+        loadBudgets();
+        setSnackbar(`Imported ${result.imported} new transaction${result.imported > 1 ? 's' : ''}`);
+      } else if (!isAuto) {
+        setSnackbar('No new transactions found');
+      }
+    } catch (e) {
+      if (!isAuto) {
+        setSnackbar('SMS sync failed');
+      }
+    } finally {
+      setIsSyncing(false);
+    }
+  }, [isSyncing, loadTransactions, loadBudgets]);
 
   useFocusEffect(
     useCallback(() => {
       loadCategories();
       loadTransactions();
       loadBudgets();
+
+      // Auto-sync SMS with cooldown
+      const now = Date.now();
+      if (now - lastAutoSyncTime > AUTO_SYNC_COOLDOWN_MS) {
+        lastAutoSyncTime = now;
+        runSmsSync(true);
+      }
     }, [])
   );
 
-  const monthlyIncome = getMonthlyTotal('credit');
-  const monthlyExpense = getMonthlyTotal('debit');
+  const monthlyIncome = useMemo(() => getMonthlyTotal('credit'), [transactions]);
+  const monthlyExpense = useMemo(() => getMonthlyTotal('debit'), [transactions]);
+  const dailyExpense = useMemo(() => getDailyTotal('debit'), [transactions]);
   const balance = monthlyIncome - monthlyExpense;
-  const recentTransactions = getRecentTransactions(5);
-  const budgetAlerts = getBudgetAlerts();
+  const recentTransactions = useMemo(() => getRecentTransactions(5), [transactions]);
+  const budgetAlerts = useMemo(() => getBudgetAlerts(), [budgetsWithProgress]);
 
   const handleAddTransaction = () => {
     router.push('/transaction/add');
@@ -62,35 +106,44 @@ export default function DashboardScreen() {
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.monthLabel}>{formatMonth(new Date())}</Text>
-          <IconButton
-            icon="cog"
-            iconColor="#fff"
-            size={24}
-            onPress={handleSettings}
-          />
+          <View style={styles.headerActions}>
+            <IconButton
+              icon="sync"
+              iconColor={isSyncing ? Colors.textSecondary : '#000000'}
+              size={24}
+              onPress={() => runSmsSync(false)}
+              disabled={isSyncing}
+            />
+            <IconButton
+              icon="cog"
+              iconColor="#000000"
+              size={24}
+              onPress={handleSettings}
+            />
+          </View>
         </View>
 
         {/* Summary Cards */}
         <View style={styles.summaryContainer}>
-          <Surface style={[styles.summaryCard, styles.incomeCard]} elevation={2}>
+          <Surface style={[styles.summaryCard, styles.incomeCard]} elevation={0}>
             <MaterialCommunityIcons name="arrow-down-circle" size={28} color={Colors.income} />
             <Text style={styles.summaryLabel}>Income</Text>
-            <Text style={[styles.summaryAmount, { color: Colors.income }]}>
+            <Text style={[styles.summaryAmount, { color: Colors.income, fontWeight: '700' }]}>
               {formatCurrency(monthlyIncome)}
             </Text>
           </Surface>
 
-          <Surface style={[styles.summaryCard, styles.expenseCard]} elevation={2}>
+          <Surface style={[styles.summaryCard, styles.expenseCard]} elevation={0}>
             <MaterialCommunityIcons name="arrow-up-circle" size={28} color={Colors.expense} />
             <Text style={styles.summaryLabel}>Expense</Text>
-            <Text style={[styles.summaryAmount, { color: Colors.expense }]}>
+            <Text style={[styles.summaryAmount, { color: Colors.expense, fontWeight: '400' }]}>
               {formatCurrency(monthlyExpense)}
             </Text>
           </Surface>
         </View>
 
         {/* Balance Card */}
-        <Surface style={styles.balanceCard} elevation={2}>
+        <Surface style={styles.balanceCard} elevation={0}>
           <Text style={styles.balanceLabel}>Balance</Text>
           <Text
             style={[
@@ -102,8 +155,14 @@ export default function DashboardScreen() {
           </Text>
         </Surface>
 
+        {/* Today's Expense */}
+        <Surface style={styles.todayCard} elevation={0}>
+          <Text style={styles.todayLabel}>Today</Text>
+          <Text style={styles.todayAmount}>{formatCurrency(dailyExpense)}</Text>
+        </Surface>
+
         {/* Budget Alerts */}
-        {budgetAlerts.length > 0 && (
+        {budgetAlerts.length > 0 ? (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Budget Alerts</Text>
             {budgetAlerts.map((budget) => (
@@ -115,8 +174,8 @@ export default function DashboardScreen() {
                       {
                         backgroundColor:
                           budget.percentage >= BudgetThresholds.danger * 100
-                            ? Colors.expense
-                            : Colors.warning,
+                            ? '#333333'
+                            : '#888888',
                       },
                     ]}
                   >
@@ -145,10 +204,10 @@ export default function DashboardScreen() {
                         width: `${Math.min(100, budget.percentage)}%`,
                         backgroundColor:
                           budget.percentage >= 100
-                            ? Colors.expense
+                            ? '#333333'
                             : budget.percentage >= 80
-                            ? Colors.warning
-                            : Colors.income,
+                            ? '#666666'
+                            : '#000000',
                       },
                     ]}
                   />
@@ -156,20 +215,20 @@ export default function DashboardScreen() {
               </Surface>
             ))}
           </View>
-        )}
+        ) : null}
 
         {/* Recent Transactions */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Recent Transactions</Text>
-            {recentTransactions.length > 0 && (
+            {recentTransactions.length > 0 ? (
               <Text
                 style={styles.seeAll}
                 onPress={() => router.push('/transactions')}
               >
                 See All
               </Text>
-            )}
+            ) : null}
           </View>
           {recentTransactions.length === 0 ? (
             <Surface style={styles.emptyCard} elevation={1}>
@@ -199,6 +258,15 @@ export default function DashboardScreen() {
         onPress={handleAddTransaction}
         color="#fff"
       />
+
+      <Snackbar
+        visible={!!snackbar}
+        onDismiss={() => setSnackbar(null)}
+        duration={3000}
+        action={{ label: 'OK', onPress: () => setSnackbar(null) }}
+      >
+        {snackbar || ''}
+      </Snackbar>
     </View>
   );
 }
@@ -206,7 +274,7 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.primary,
+    backgroundColor: '#FFFFFF',
   },
   scrollView: {
     flex: 1,
@@ -219,12 +287,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 24,
-    backgroundColor: Colors.primary,
+    backgroundColor: '#FFFFFF',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   monthLabel: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#fff',
+    color: '#000000',
   },
   summaryContainer: {
     flexDirection: 'row',
@@ -237,6 +309,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: Colors.surface,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
   },
   incomeCard: {
     marginRight: 8,
@@ -260,6 +334,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: Colors.surface,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
   },
   balanceLabel: {
     fontSize: 14,
@@ -269,6 +345,28 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '700',
     marginTop: 8,
+  },
+  todayCard: {
+    marginHorizontal: 16,
+    marginBottom: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  todayLabel: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+  },
+  todayAmount: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.expense,
   },
   section: {
     paddingHorizontal: 0,

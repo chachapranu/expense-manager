@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { StyleSheet, View, ScrollView, RefreshControl } from 'react-native';
 import {
   Text,
@@ -14,9 +14,10 @@ import {
 import { useFocusEffect } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Colors, BudgetThresholds } from '../../constants';
-import { formatCurrency } from '../../utils';
-import { useBudgetStore, useCategoryStore } from '../../store';
-import { EmptyState } from '../../components/common';
+import { formatCurrency } from '../../utils/formatters';
+import { useBudgetStore } from '../../store/useBudgetStore';
+import { useCategoryStore } from '../../store/useCategoryStore';
+import { EmptyState } from '../../components/common/EmptyState';
 import type { BudgetPeriod, BudgetWithProgress } from '../../types';
 
 export default function BudgetsScreen() {
@@ -46,15 +47,15 @@ export default function BudgetsScreen() {
     }, [])
   );
 
-  const expenseCategories = getExpenseCategories();
+  const expenseCategories = useMemo(() => getExpenseCategories(), [categories]);
   const selectedCategory = selectedCategoryId
     ? categories.find((c) => c.id === selectedCategoryId)
     : null;
 
-  const usedCategoryIds = budgetsWithProgress.map((b) => b.categoryId);
-  const availableCategories = expenseCategories.filter(
-    (c) => !usedCategoryIds.includes(c.id)
-  );
+  const availableCategories = useMemo(() => {
+    const usedCategoryIds = new Set(budgetsWithProgress.map((b) => b.categoryId));
+    return expenseCategories.filter((c) => !usedCategoryIds.has(c.id));
+  }, [expenseCategories, budgetsWithProgress]);
 
   const resetForm = () => {
     setAmount('');
@@ -128,12 +129,12 @@ export default function BudgetsScreen() {
   };
 
   const getProgressColor = (percentage: number) => {
-    if (percentage >= BudgetThresholds.danger * 100) return Colors.expense;
-    if (percentage >= BudgetThresholds.warning * 100) return Colors.warning;
-    return Colors.income;
+    if (percentage >= BudgetThresholds.danger * 100) return '#333333';
+    if (percentage >= BudgetThresholds.warning * 100) return '#666666';
+    return '#000000';
   };
 
-  const renderBudgetCard = (budget: BudgetWithProgress) => {
+  const renderBudgetCard = useCallback((budget: BudgetWithProgress) => {
     const progressColor = getProgressColor(budget.percentage);
 
     return (
@@ -202,7 +203,7 @@ export default function BudgetsScreen() {
         </View>
       </Surface>
     );
-  };
+  }, []);
 
   return (
     <View style={styles.container}>

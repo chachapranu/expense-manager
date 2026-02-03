@@ -15,8 +15,9 @@ import { useFocusEffect } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Colors } from '../../constants';
 import { getDatabase, generateId, CategoryRuleRow } from '../../services/database';
-import { useCategoryStore } from '../../store';
-import { EmptyState, LoadingScreen } from '../../components/common';
+import { useCategoryStore } from '../../store/useCategoryStore';
+import { EmptyState } from '../../components/common/EmptyState';
+import { LoadingScreen } from '../../components/common/LoadingScreen';
 
 export default function AutoCategorizationScreen() {
   const { categories, loadCategories, getCategoryById } = useCategoryStore();
@@ -294,7 +295,7 @@ export default function AutoCategorizationScreen() {
           </Button>
 
           <View style={styles.modalActions}>
-            {showEditModal && (
+            {showEditModal ? (
               <Button
                 mode="outlined"
                 onPress={handleDeleteRule}
@@ -303,7 +304,7 @@ export default function AutoCategorizationScreen() {
               >
                 Delete
               </Button>
-            )}
+            ) : null}
             <View style={styles.actionSpacer} />
             <Button
               mode="outlined"

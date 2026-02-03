@@ -1,18 +1,18 @@
 import React from 'react';
-import { StyleSheet, View, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Pressable } from 'react-native';
 import { Text, Surface } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Colors } from '../../constants';
-import { formatDate, formatCurrency } from '../../utils';
-import { useCategoryStore } from '../../store';
+import { formatDate, formatCurrency } from '../../utils/formatters';
+import { useCategoryStore } from '../../store/useCategoryStore';
 import type { TransactionRow } from '../../services/database';
 
 interface TransactionItemProps {
   transaction: TransactionRow;
 }
 
-export const TransactionItem: React.FC<TransactionItemProps> = ({
+export const TransactionItem: React.FC<TransactionItemProps> = React.memo(({
   transaction,
 }) => {
   const router = useRouter();
@@ -26,7 +26,7 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
   };
 
   return (
-    <TouchableOpacity onPress={handlePress}>
+    <Pressable onPress={handlePress}>
       <Surface style={styles.container} elevation={1}>
         <View
           style={[
@@ -48,11 +48,11 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
           <Text style={styles.details} numberOfLines={1}>
             {category?.name || 'Uncategorized'} • {formatDate(transaction.date)}
           </Text>
-          {transaction.notes && (
+          {transaction.notes ? (
             <Text style={styles.notes} numberOfLines={1}>
               {transaction.notes}
             </Text>
-          )}
+          ) : null}
         </View>
 
         <View style={styles.amountContainer}>
@@ -62,27 +62,29 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
               {
                 color:
                   transaction.type === 'credit'
-                    ? Colors.income
-                    : Colors.expense,
+                    ? Colors.text
+                    : Colors.textSecondary,
+                fontWeight:
+                  transaction.type === 'credit' ? '700' : '400',
               },
             ]}
           >
             {transaction.type === 'credit' ? '+' : '-'}
             {formatCurrency(transaction.amount)}
           </Text>
-          {transaction.source === 'sms' && (
+          {transaction.source === 'sms' ? (
             <MaterialCommunityIcons
               name="message-text"
               size={12}
               color={Colors.textSecondary}
               style={styles.sourceIcon}
             />
-          )}
+          ) : null}
         </View>
       </Surface>
-    </TouchableOpacity>
+    </Pressable>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {

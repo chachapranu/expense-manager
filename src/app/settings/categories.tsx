@@ -15,8 +15,8 @@ import {
 import { useFocusEffect } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Colors, CategoryIcons, CategoryColors } from '../../constants';
-import { useCategoryStore } from '../../store';
-import { LoadingScreen } from '../../components/common';
+import { useCategoryStore } from '../../store/useCategoryStore';
+import { LoadingScreen } from '../../components/common/LoadingScreen';
 import type { CategoryRow } from '../../services/database';
 
 export default function CategoriesScreen() {
@@ -143,7 +143,7 @@ export default function CategoriesScreen() {
     );
   };
 
-  const renderCategoryItem = (category: CategoryRow) => (
+  const renderCategoryItem = useCallback((category: CategoryRow) => (
     <List.Item
       key={category.id}
       title={category.name}
@@ -160,7 +160,7 @@ export default function CategoriesScreen() {
       right={(props) => <List.Icon {...props} icon="chevron-right" />}
       style={styles.categoryItem}
     />
-  );
+  ), []);
 
   if (isLoading && categories.length === 0) {
     return <LoadingScreen />;
@@ -248,7 +248,7 @@ export default function CategoriesScreen() {
           </Button>
 
           <View style={styles.modalActions}>
-            {showEditModal && (
+            {showEditModal ? (
               <Button
                 mode="outlined"
                 onPress={handleDeleteCategory}
@@ -257,7 +257,7 @@ export default function CategoriesScreen() {
               >
                 Delete
               </Button>
-            )}
+            ) : null}
             <View style={styles.actionSpacer} />
             <Button
               mode="outlined"

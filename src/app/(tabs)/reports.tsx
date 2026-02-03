@@ -10,9 +10,10 @@ import {
   endOfMonth,
 } from 'date-fns';
 import { Colors } from '../../constants';
-import { formatCurrency } from '../../utils';
-import { useTransactionStore, useCategoryStore } from '../../store';
-import { EmptyState } from '../../components/common';
+import { formatCurrency } from '../../utils/formatters';
+import { useTransactionStore } from '../../store/useTransactionStore';
+import { useCategoryStore } from '../../store/useCategoryStore';
+import { EmptyState } from '../../components/common/EmptyState';
 import type { CategoryBreakdown } from '../../types';
 
 type TimeRange = '1M' | '3M' | '6M' | '1Y';
@@ -136,7 +137,7 @@ export default function ReportsScreen() {
       </View>
 
       {/* Total Expense Card */}
-      <Surface style={styles.totalCard} elevation={2}>
+      <Surface style={styles.totalCard} elevation={0}>
         <Text style={styles.totalLabel}>Total Expenses</Text>
         <Text style={styles.totalAmount}>{formatCurrency(totalExpense)}</Text>
         <Text style={styles.totalPeriod}>
@@ -253,22 +254,24 @@ const styles = StyleSheet.create({
     marginTop: 0,
     padding: 24,
     borderRadius: 12,
-    backgroundColor: Colors.primary,
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
   },
   totalLabel: {
     fontSize: 14,
-    color: 'rgba(255,255,255,0.8)',
+    color: '#888888',
   },
   totalAmount: {
     fontSize: 32,
     fontWeight: '700',
-    color: '#fff',
+    color: '#000000',
     marginTop: 8,
   },
   totalPeriod: {
     fontSize: 12,
-    color: 'rgba(255,255,255,0.7)',
+    color: '#888888',
     marginTop: 4,
   },
   chartCard: {

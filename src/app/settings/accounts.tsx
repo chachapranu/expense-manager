@@ -16,7 +16,8 @@ import { useFocusEffect } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Colors, CategoryColors } from '../../constants';
 import { getDatabase, generateId, AccountRow } from '../../services/database';
-import { EmptyState, LoadingScreen } from '../../components/common';
+import { EmptyState } from '../../components/common/EmptyState';
+import { LoadingScreen } from '../../components/common/LoadingScreen';
 
 type AccountType = 'bank' | 'credit_card' | 'wallet' | 'cash';
 
@@ -243,9 +244,9 @@ export default function AccountsScreen() {
                 )}
                 right={() => (
                   <View style={styles.accountRight}>
-                    {account.is_default === 1 && (
+                    {account.is_default === 1 ? (
                       <Text style={styles.defaultBadge}>Default</Text>
-                    )}
+                    ) : null}
                     <MaterialCommunityIcons
                       name="chevron-right"
                       size={24}
@@ -304,7 +305,7 @@ export default function AccountsScreen() {
               style={styles.segmentedButtons}
             />
 
-            {accountType !== 'cash' && (
+            {accountType !== 'cash' ? (
               <>
                 <TextInput
                   mode="outlined"
@@ -324,7 +325,7 @@ export default function AccountsScreen() {
                   style={styles.input}
                 />
               </>
-            )}
+            ) : null}
 
             <Button
               mode="outlined"
@@ -343,7 +344,7 @@ export default function AccountsScreen() {
             </View>
 
             <View style={styles.modalActions}>
-              {showEditModal && (
+              {showEditModal ? (
                 <Button
                   mode="outlined"
                   onPress={handleDeleteAccount}
@@ -352,7 +353,7 @@ export default function AccountsScreen() {
                 >
                   Delete
                 </Button>
-              )}
+              ) : null}
               <View style={styles.actionSpacer} />
               <Button
                 mode="outlined"

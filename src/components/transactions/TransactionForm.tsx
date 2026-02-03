@@ -12,7 +12,7 @@ import {
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Colors } from '../../constants';
-import { useCategoryStore } from '../../store';
+import { useCategoryStore } from '../../store/useCategoryStore';
 import type { TransactionType } from '../../types';
 import type { CategoryRow } from '../../services/database';
 
@@ -118,7 +118,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
         error={!!errors.amount}
         style={styles.input}
       />
-      {errors.amount && <Text style={styles.errorText}>{errors.amount}</Text>}
+      {errors.amount ? <Text style={styles.errorText}>{errors.amount}</Text> : null}
 
       <TextInput
         mode="outlined"
@@ -162,14 +162,14 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
         })}
       </Button>
 
-      {showDatePicker && (
+      {showDatePicker ? (
         <DateTimePicker
           value={formData.date}
           mode="date"
           onChange={handleDateChange}
           maximumDate={new Date()}
         />
-      )}
+      ) : null}
 
       <TextInput
         mode="outlined"

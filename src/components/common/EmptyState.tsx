@@ -28,11 +28,11 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
       />
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.message}>{message}</Text>
-      {actionLabel && onAction && (
+      {actionLabel && onAction ? (
         <Button mode="contained" onPress={onAction} style={styles.button}>
           {actionLabel}
         </Button>
-      )}
+      ) : null}
     </View>
   );
 };

@@ -11,26 +11,35 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#6200ee"
+      "backgroundColor": "#FFFFFF"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#6200ee"
+        "backgroundColor": "#2E7D32"
       },
       "package": "com.expensemanager.app",
       "permissions": [
         "android.permission.READ_SMS",
-        "android.permission.RECEIVE_SMS"
+        "android.permission.RECEIVE_SMS",
+        "android.permission.USE_BIOMETRIC"
       ],
       "edgeToEdgeEnabled": true
     },
     "plugins": [
       "expo-router",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      "expo-font",
+      "expo-local-authentication"
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "2aa3c8ba-e4a5-4754-a1fe-0e0ba9492678"
+      }
     }
   }
 }

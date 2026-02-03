@@ -4,6 +4,61 @@ export abstract class BaseBankParser {
   abstract bankName: string;
   abstract senderPatterns: string[];
 
+  private static readonly AMOUNT_PATTERNS: readonly RegExp[] = [
+    /(?:Rs\.?|INR|₹)\s*([0-9,]+(?:\.[0-9]{1,2})?)/i,
+    /(?:debited|credited|paid|received|sent|transferred)\s*(?:Rs\.?|INR|₹)?\s*([0-9,]+(?:\.[0-9]{1,2})?)/i,
+    /(?:amount|amt)[:.]?\s*(?:Rs\.?|INR|₹)?\s*([0-9,]+(?:\.[0-9]{1,2})?)/i,
+    /([0-9,]+(?:\.[0-9]{1,2})?)\s*(?:debited|credited|paid|INR|Rs)/i,
+  ];
+
+  private static readonly ACCOUNT_PATTERNS: readonly RegExp[] = [
+    /(?:a\/c|ac|acct|account|card)[^\d]*(\d{4,})/i,
+    /(?:xx|x+)(\d{4})/i,
+    /(\d{4})(?=\s*(?:debited|credited|is))/i,
+  ];
+
+  private static readonly MERCHANT_PATTERNS: readonly RegExp[] = [
+    /(?:at|to|from|@)\s+([A-Za-z0-9\s&'-]+?)(?:\s+on|\s+ref|\s+txn|\s+for|\s*\.|$)/i,
+    /(?:paid to|sent to|received from)\s+([A-Za-z0-9\s&'-]+?)(?:\s+on|\s+ref|\s*\.|\s+for|$)/i,
+    /(?:VPA|UPI)\s*[:@]?\s*([a-zA-Z0-9._@-]+)/i,
+  ];
+
+  private static readonly REFERENCE_PATTERNS: readonly RegExp[] = [
+    /(?:ref|txn|utr|trans)[^\d]*(\d{8,})/i,
+    /(?:reference|transaction)[^\d]*(\d{8,})/i,
+  ];
+
+  private static readonly CREDIT_KEYWORDS: readonly string[] = [
+    'credited',
+    'received',
+    'deposited',
+    'credit',
+    'refund',
+    'cashback',
+    'reversed',
+    'posted',
+    'added',
+    'deposit',
+    'inward',
+    'salary',
+  ];
+
+  private static readonly DEBIT_KEYWORDS: readonly string[] = [
+    'debited',
+    'paid',
+    'spent',
+    'sent',
+    'transferred',
+    'withdrawn',
+    'purchase',
+    'debit',
+    'charged',
+    'deducted',
+    'autopay',
+    'auto-pay',
+    'payment',
+  ];
+
   canParse(sender: string): boolean {
     const normalizedSender = sender.toUpperCase();
     return this.senderPatterns.some((pattern) =>
@@ -14,15 +69,7 @@ export abstract class BaseBankParser {
   abstract parse(body: string, date: Date): ParsedTransaction | null;
 
   protected extractAmount(body: string): number | null {
-    // Common patterns for amount extraction
-    const patterns = [
-      /(?:Rs\.?|INR|₹)\s*([0-9,]+(?:\.[0-9]{1,2})?)/i,
-      /(?:debited|credited|paid|received|sent|transferred)\s*(?:Rs\.?|INR|₹)?\s*([0-9,]+(?:\.[0-9]{1,2})?)/i,
-      /(?:amount|amt)[:.]?\s*(?:Rs\.?|INR|₹)?\s*([0-9,]+(?:\.[0-9]{1,2})?)/i,
-      /([0-9,]+(?:\.[0-9]{1,2})?)\s*(?:debited|credited|paid|INR|Rs)/i,
-    ];
-
-    for (const pattern of patterns) {
+    for (const pattern of BaseBankParser.AMOUNT_PATTERNS) {
       const match = body.match(pattern);
       if (match) {
         const amount = parseFloat(match[1].replace(/,/g, ''));
@@ -34,53 +81,28 @@ export abstract class BaseBankParser {
     return null;
   }
 
-  protected extractTransactionType(body: string): TransactionType {
+  protected extractTransactionType(body: string): TransactionType | null {
     const lowerBody = body.toLowerCase();
-    const creditKeywords = [
-      'credited',
-      'received',
-      'deposited',
-      'credit',
-      'refund',
-      'cashback',
-      'reversed',
-    ];
-    const debitKeywords = [
-      'debited',
-      'paid',
-      'spent',
-      'sent',
-      'transferred',
-      'withdrawn',
-      'purchase',
-      'debit',
-    ];
 
-    for (const keyword of creditKeywords) {
+    for (const keyword of BaseBankParser.CREDIT_KEYWORDS) {
       if (lowerBody.includes(keyword)) {
         return 'credit';
       }
     }
 
-    for (const keyword of debitKeywords) {
+    for (const keyword of BaseBankParser.DEBIT_KEYWORDS) {
       if (lowerBody.includes(keyword)) {
         return 'debit';
       }
     }
 
-    // Default to debit for unknown
-    return 'debit';
+    // No transaction type keyword found — likely an informational SMS
+    // (balance alert, EMI reminder, minimum due notice, etc.)
+    return null;
   }
 
   protected extractAccountNumber(body: string): string | null {
-    // Extract last 4 digits of account number
-    const patterns = [
-      /(?:a\/c|ac|acct|account|card)[^\d]*(\d{4,})/i,
-      /(?:xx|x+)(\d{4})/i,
-      /(\d{4})(?=\s*(?:debited|credited|is))/i,
-    ];
-
-    for (const pattern of patterns) {
+    for (const pattern of BaseBankParser.ACCOUNT_PATTERNS) {
       const match = body.match(pattern);
       if (match) {
         return match[1].slice(-4);
@@ -90,14 +112,7 @@ export abstract class BaseBankParser {
   }
 
   protected extractMerchant(body: string): string | null {
-    // Common patterns for merchant extraction
-    const patterns = [
-      /(?:at|to|from|@)\s+([A-Za-z0-9\s&'-]+?)(?:\s+on|\s+ref|\s+txn|\s+for|\s*\.|$)/i,
-      /(?:paid to|sent to|received from)\s+([A-Za-z0-9\s&'-]+?)(?:\s+on|\s+ref|\s*\.|\s+for|$)/i,
-      /(?:VPA|UPI)\s*[:@]?\s*([a-zA-Z0-9._@-]+)/i,
-    ];
-
-    for (const pattern of patterns) {
+    for (const pattern of BaseBankParser.MERCHANT_PATTERNS) {
       const match = body.match(pattern);
       if (match && match[1]) {
         const merchant = match[1].trim();
@@ -110,12 +125,7 @@ export abstract class BaseBankParser {
   }
 
   protected extractReferenceNumber(body: string): string | null {
-    const patterns = [
-      /(?:ref|txn|utr|trans)[^\d]*(\d{8,})/i,
-      /(?:reference|transaction)[^\d]*(\d{8,})/i,
-    ];
-
-    for (const pattern of patterns) {
+    for (const pattern of BaseBankParser.REFERENCE_PATTERNS) {
       const match = body.match(pattern);
       if (match) {
         return match[1];

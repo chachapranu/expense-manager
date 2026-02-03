@@ -17,7 +17,8 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Colors } from '../../constants';
 import { getDatabase, generateId, IgnoreRuleRow } from '../../services/database';
 import type { IgnoreRuleType } from '../../types';
-import { EmptyState, LoadingScreen } from '../../components/common';
+import { EmptyState } from '../../components/common/EmptyState';
+import { LoadingScreen } from '../../components/common/LoadingScreen';
 
 export default function IgnoreRulesScreen() {
   const [rules, setRules] = useState<IgnoreRuleRow[]>([]);
@@ -316,7 +317,7 @@ export default function IgnoreRulesScreen() {
           </Text>
 
           <View style={styles.modalActions}>
-            {showEditModal && (
+            {showEditModal ? (
               <Button
                 mode="outlined"
                 onPress={handleDeleteRule}
@@ -325,7 +326,7 @@ export default function IgnoreRulesScreen() {
               >
                 Delete
               </Button>
-            )}
+            ) : null}
             <View style={styles.actionSpacer} />
             <Button
               mode="outlined"

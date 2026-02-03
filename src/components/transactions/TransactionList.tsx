@@ -1,7 +1,8 @@
-import React from 'react';
-import { StyleSheet, FlatList, View, RefreshControl } from 'react-native';
+import React, { useCallback } from 'react';
+import { StyleSheet, View, RefreshControl } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { TransactionItem } from './TransactionItem';
-import { EmptyState } from '../common';
+import { EmptyState } from '../common/EmptyState';
 import { Colors } from '../../constants';
 import type { TransactionRow } from '../../services/database';
 
@@ -20,8 +21,11 @@ export const TransactionList: React.FC<TransactionListProps> = ({
   onAddPress,
   ListHeaderComponent,
 }) => {
-  const renderItem = ({ item }: { item: TransactionRow }) => (
-    <TransactionItem transaction={item} />
+  const renderItem = useCallback(
+    ({ item }: { item: TransactionRow }) => (
+      <TransactionItem transaction={item} />
+    ),
+    []
   );
 
   if (transactions.length === 0) {
@@ -40,7 +44,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
   }
 
   return (
-    <FlatList
+    <FlashList
       data={transactions}
       renderItem={renderItem}
       keyExtractor={(item) => item.id}

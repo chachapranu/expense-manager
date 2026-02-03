@@ -3,6 +3,7 @@ import { parsers, genericParser } from './parsers';
 import { IgnoreRuleEngine } from './rules/IgnoreRuleEngine';
 import { AutoCategorizer } from './rules/AutoCategorizer';
 import { getDatabase, generateId, TransactionRow } from '../database';
+import { BankSenderPatterns } from '../../constants';
 import type { SmsMessage, ParsedTransaction } from '../../types';
 
 // Type for react-native-get-sms-android
@@ -16,13 +17,17 @@ interface SmsAndroid {
 
 let SmsAndroidModule: SmsAndroid | null = null;
 
-// Dynamically import SMS module only on Android
-if (Platform.OS === 'android') {
+function getSmsModule(): SmsAndroid | null {
+  if (SmsAndroidModule) return SmsAndroidModule;
+  if (Platform.OS !== 'android') return null;
+
   try {
-    SmsAndroidModule = require('react-native-get-sms-android').default;
+    const moduleName = 'react-native-get-sms-android';
+    SmsAndroidModule = require(moduleName);
   } catch (e) {
     console.log('SMS module not available');
   }
+  return SmsAndroidModule;
 }
 
 export class SmsService {
@@ -73,7 +78,8 @@ export class SmsService {
   }
 
   async readSms(daysBack: number = 30): Promise<SmsMessage[]> {
-    if (!SmsAndroidModule) {
+    const smsModule = getSmsModule();
+    if (!smsModule) {
       throw new Error('SMS module not available');
     }
 
@@ -93,7 +99,7 @@ export class SmsService {
         minDate: minDate,
       });
 
-      SmsAndroidModule!.list(
+      smsModule.list(
         filter,
         (fail) => {
           reject(new Error(fail));
@@ -110,13 +116,31 @@ export class SmsService {
     });
   }
 
+  async readBankSms(daysBack: number = 90): Promise<SmsMessage[]> {
+    const messages = await this.readSms(daysBack);
+
+    // Indian TRAI transactional SMS format: 2-letter circle code + "-" + 4-8 char sender
+    // e.g. "JM-HDFCBK", "AD-ICICIB", "VM-HSBCBK"
+    const TRAI_PATTERN = /^[A-Z]{2}-[A-Z0-9]{4,8}$/i;
+
+    const bankPatterns = Object.values(BankSenderPatterns).flat();
+
+    return messages.filter((sms) => {
+      const sender = sms.address.toUpperCase();
+      if (TRAI_PATTERN.test(sender)) return true;
+      return bankPatterns.some((p) => sender.includes(p.toUpperCase()));
+    });
+  }
+
   async syncTransactions(
     daysBack: number = 30,
     onProgress?: (current: number, total: number) => void
   ): Promise<{ imported: number; skipped: number; errors: number }> {
-    // Load rules
-    await this.ignoreRuleEngine.loadRules();
-    await this.autoCategorizer.loadRules();
+    // Load rules in parallel
+    await Promise.all([
+      this.ignoreRuleEngine.loadRules(),
+      this.autoCategorizer.loadRules(),
+    ]);
 
     // Read SMS
     const messages = await this.readSms(daysBack);
@@ -126,6 +150,16 @@ export class SmsService {
     let errors = 0;
 
     const db = getDatabase();
+
+    // Pre-fetch all transactions once to avoid N+1 queries
+    const existingTransactions = db.getAllSync<TransactionRow>(
+      'SELECT * FROM transactions'
+    );
+    const existingRawSms = new Set(
+      existingTransactions
+        .map((t) => t.raw_sms)
+        .filter((s): s is string => s !== null)
+    );
 
     for (let i = 0; i < messages.length; i++) {
       const sms = messages[i];
@@ -150,17 +184,15 @@ export class SmsService {
         continue;
       }
 
-      // Check for duplicates (same amount, date within 1 minute, same raw SMS)
+      // Check for duplicates (same raw SMS or same amount+date within 1 minute)
       try {
-        const existingTransactions = db.getAllSync<TransactionRow>(
-          'SELECT * FROM transactions'
-        );
-        const isDuplicate = existingTransactions.some(
-          (t: TransactionRow) =>
-            t.raw_sms === parsed.rawSms ||
-            (t.amount === parsed.amount &&
-              Math.abs(t.date - parsed.date.getTime()) < 60000)
-        );
+        const isDuplicate =
+          existingRawSms.has(parsed.rawSms) ||
+          existingTransactions.some(
+            (t: TransactionRow) =>
+              t.amount === parsed.amount &&
+              Math.abs(t.date - parsed.date.getTime()) < 60000
+          );
 
         if (isDuplicate) {
           skipped++;

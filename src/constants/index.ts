@@ -2,19 +2,20 @@ import { Category } from '../types';
 
 // Theme colors
 export const Colors = {
-  primary: '#6200ee',
-  primaryDark: '#3700b3',
-  secondary: '#03dac6',
-  background: '#f5f5f5',
-  surface: '#ffffff',
-  error: '#b00020',
-  success: '#4caf50',
-  warning: '#ff9800',
+  primary: '#000000',
+  primaryDark: '#000000',
+  secondary: '#666666',
+  background: '#FFFFFF',
+  surface: '#FFFFFF',
+  error: '#333333',
+  success: '#000000',
+  warning: '#888888',
   text: '#000000',
-  textSecondary: '#666666',
-  border: '#e0e0e0',
-  income: '#4caf50',
-  expense: '#f44336',
+  textSecondary: '#888888',
+  border: '#E5E5E5',
+  income: '#000000',
+  expense: '#666666',
+  disabled: '#CCCCCC',
 };
 
 // Category icons (Material Design icon names)
@@ -61,54 +62,54 @@ export const CategoryIcons = [
   'hamburger',
 ];
 
-// Category colors
+// Category colors (grayscale shades)
 export const CategoryColors = [
-  '#f44336', // Red
-  '#e91e63', // Pink
-  '#9c27b0', // Purple
-  '#673ab7', // Deep Purple
-  '#3f51b5', // Indigo
-  '#2196f3', // Blue
-  '#03a9f4', // Light Blue
-  '#00bcd4', // Cyan
-  '#009688', // Teal
-  '#4caf50', // Green
-  '#8bc34a', // Light Green
-  '#cddc39', // Lime
-  '#ffeb3b', // Yellow
-  '#ffc107', // Amber
-  '#ff9800', // Orange
-  '#ff5722', // Deep Orange
-  '#795548', // Brown
-  '#607d8b', // Blue Grey
+  '#1A1A1A',
+  '#2A2A2A',
+  '#3A3A3A',
+  '#4A4A4A',
+  '#555555',
+  '#606060',
+  '#6B6B6B',
+  '#767676',
+  '#818181',
+  '#8C8C8C',
+  '#979797',
+  '#A2A2A2',
+  '#ADADAD',
+  '#B3B3B3',
+  '#BEBEBE',
+  '#C4C4C4',
+  '#CACACA',
+  '#D4D4D4',
 ];
 
 // Default categories
 export const DefaultCategories: Omit<Category, 'id' | 'createdAt' | 'updatedAt'>[] = [
   // Expense categories
-  { name: 'Food & Dining', icon: 'food', color: '#ff5722', isIncome: false },
-  { name: 'Groceries', icon: 'cart', color: '#4caf50', isIncome: false },
-  { name: 'Transport', icon: 'car', color: '#2196f3', isIncome: false },
-  { name: 'Fuel', icon: 'gas-station', color: '#ff9800', isIncome: false },
-  { name: 'Shopping', icon: 'shopping', color: '#e91e63', isIncome: false },
-  { name: 'Entertainment', icon: 'movie', color: '#9c27b0', isIncome: false },
-  { name: 'Bills & Utilities', icon: 'flash', color: '#ffeb3b', isIncome: false },
-  { name: 'Healthcare', icon: 'medical-bag', color: '#f44336', isIncome: false },
-  { name: 'Education', icon: 'school', color: '#3f51b5', isIncome: false },
-  { name: 'Personal Care', icon: 'spa', color: '#00bcd4', isIncome: false },
-  { name: 'Home', icon: 'home', color: '#795548', isIncome: false },
-  { name: 'Travel', icon: 'airplane', color: '#03a9f4', isIncome: false },
-  { name: 'Subscriptions', icon: 'youtube-subscription', color: '#673ab7', isIncome: false },
-  { name: 'Gifts', icon: 'gift', color: '#cddc39', isIncome: false },
-  { name: 'Other Expense', icon: 'tag', color: '#607d8b', isIncome: false },
+  { name: 'Food & Dining', icon: 'food', color: CategoryColors[0], isIncome: false },
+  { name: 'Groceries', icon: 'cart', color: CategoryColors[1], isIncome: false },
+  { name: 'Transport', icon: 'car', color: CategoryColors[2], isIncome: false },
+  { name: 'Fuel', icon: 'gas-station', color: CategoryColors[3], isIncome: false },
+  { name: 'Shopping', icon: 'shopping', color: CategoryColors[4], isIncome: false },
+  { name: 'Entertainment', icon: 'movie', color: CategoryColors[5], isIncome: false },
+  { name: 'Bills & Utilities', icon: 'flash', color: CategoryColors[6], isIncome: false },
+  { name: 'Healthcare', icon: 'medical-bag', color: CategoryColors[7], isIncome: false },
+  { name: 'Education', icon: 'school', color: CategoryColors[8], isIncome: false },
+  { name: 'Personal Care', icon: 'spa', color: CategoryColors[9], isIncome: false },
+  { name: 'Home', icon: 'home', color: CategoryColors[10], isIncome: false },
+  { name: 'Travel', icon: 'airplane', color: CategoryColors[11], isIncome: false },
+  { name: 'Subscriptions', icon: 'youtube-subscription', color: CategoryColors[12], isIncome: false },
+  { name: 'Gifts', icon: 'gift', color: CategoryColors[13], isIncome: false },
+  { name: 'Other Expense', icon: 'tag', color: CategoryColors[14], isIncome: false },
 
   // Income categories
-  { name: 'Salary', icon: 'cash', color: '#4caf50', isIncome: true },
-  { name: 'Business', icon: 'briefcase', color: '#2196f3', isIncome: true },
-  { name: 'Investment', icon: 'chart-line', color: '#ff9800', isIncome: true },
-  { name: 'Freelance', icon: 'laptop', color: '#9c27b0', isIncome: true },
-  { name: 'Refund', icon: 'cash-refund', color: '#00bcd4', isIncome: true },
-  { name: 'Other Income', icon: 'plus-circle', color: '#8bc34a', isIncome: true },
+  { name: 'Salary', icon: 'cash', color: CategoryColors[15], isIncome: true },
+  { name: 'Business', icon: 'briefcase', color: CategoryColors[16], isIncome: true },
+  { name: 'Investment', icon: 'chart-line', color: CategoryColors[17], isIncome: true },
+  { name: 'Freelance', icon: 'laptop', color: CategoryColors[0], isIncome: true },
+  { name: 'Refund', icon: 'cash-refund', color: CategoryColors[1], isIncome: true },
+  { name: 'Other Income', icon: 'plus-circle', color: CategoryColors[2], isIncome: true },
 ];
 
 // Bank sender IDs for SMS parsing
@@ -122,6 +123,7 @@ export const BankSenderPatterns = {
   GPAY: ['GPAY', 'GOOGLE'],
   PHONEPE: ['PHONEPE', 'PHNEPE'],
   AMAZON: ['AMAZON', 'AMZNPAY'],
+  HSBC: ['HSBC', 'HSBCBK', 'HSBCBANK', 'HSBCIN', 'HSBCIM'],
 };
 
 // Common merchant keywords for auto-categorization

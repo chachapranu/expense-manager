@@ -11,7 +11,7 @@ import {
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Colors } from '../../constants';
 import { smsService } from '../../services/sms/SmsService';
-import { useTransactionStore } from '../../store';
+import { useTransactionStore } from '../../store/useTransactionStore';
 
 type SyncRange = '7' | '30' | '90';
 
@@ -103,7 +103,7 @@ export default function SmsSyncScreen() {
               : 'SMS permission required'}
           </Text>
         </View>
-        {!hasPermission && hasPermission !== null && (
+        {!hasPermission && hasPermission !== null ? (
           <Button
             mode="contained"
             onPress={handleRequestPermission}
@@ -111,11 +111,11 @@ export default function SmsSyncScreen() {
           >
             Grant Permission
           </Button>
-        )}
+        ) : null}
       </Surface>
 
       {/* Sync Options */}
-      {hasPermission && (
+      {hasPermission ? (
         <>
           <Surface style={styles.card} elevation={1}>
             <Text style={styles.sectionTitle}>Sync Range</Text>
@@ -144,7 +144,7 @@ export default function SmsSyncScreen() {
               {isSyncing ? 'Syncing...' : 'Sync Now'}
             </Button>
 
-            {isSyncing && (
+            {isSyncing ? (
               <View style={styles.progressContainer}>
                 <ProgressBar
                   progress={syncProgress}
@@ -155,11 +155,11 @@ export default function SmsSyncScreen() {
                   {Math.round(syncProgress * 100)}%
                 </Text>
               </View>
-            )}
+            ) : null}
           </Surface>
 
           {/* Results */}
-          {result && (
+          {result ? (
             <Surface style={styles.card} elevation={1}>
               <Text style={styles.sectionTitle}>Sync Results</Text>
               <List.Item
@@ -192,7 +192,7 @@ export default function SmsSyncScreen() {
                   <Text style={styles.resultCount}>{result.skipped}</Text>
                 )}
               />
-              {result.errors > 0 && (
+              {result.errors > 0 ? (
                 <List.Item
                   title="Errors"
                   description="Failed to process"
@@ -209,9 +209,9 @@ export default function SmsSyncScreen() {
                     </Text>
                   )}
                 />
-              )}
+              ) : null}
             </Surface>
-          )}
+          ) : null}
 
           {/* Info */}
           <Surface style={styles.card} elevation={1}>
@@ -220,7 +220,7 @@ export default function SmsSyncScreen() {
               Expense Manager can parse SMS from:
             </Text>
             <View style={styles.bankList}>
-              {['HDFC Bank', 'ICICI Bank', 'SBI', 'Axis Bank', 'UPI (GPay, PhonePe, Paytm)'].map(
+              {['HDFC Bank', 'ICICI Bank', 'SBI', 'HSBC', 'Axis Bank', 'Kotak', 'UPI (GPay, PhonePe, Paytm)', '40+ other banks via fallback'].map(
                 (bank) => (
                   <View key={bank} style={styles.bankItem}>
                     <MaterialCommunityIcons
@@ -235,7 +235,7 @@ export default function SmsSyncScreen() {
             </View>
           </Surface>
         </>
-      )}
+      ) : null}
     </ScrollView>
   );
 }
