@@ -11,6 +11,7 @@ import * as LocalAuthentication from 'expo-local-authentication';
 import { getDatabase } from '../services/database';
 import { Colors, DarkColors } from '../constants';
 import { useSettingsStore } from '../store/useSettingsStore';
+import { AnomalyDetector } from '../services/notifications/AnomalyDetector';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -51,10 +52,13 @@ export default function RootLayout() {
   const theme = getTheme(isDarkMode);
 
   useEffect(() => {
+    AnomalyDetector.configureHandler();
+
     const initializeApp = async () => {
       try {
         getDatabase();
         await loadSettings();
+        AnomalyDetector.requestPermissions().catch(() => {});
         const authed = await authenticate();
         if (!authed) {
           setAuthFailed(true);

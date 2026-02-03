@@ -5,6 +5,7 @@ import { AutoCategorizer } from './rules/AutoCategorizer';
 import { getDatabase, generateId, TransactionRow } from '../database';
 import { BankSenderPatterns } from '../../constants';
 import type { SmsMessage, ParsedTransaction } from '../../types';
+import { anomalyDetector } from '../notifications/AnomalyDetector';
 
 // Type for react-native-get-sms-android
 interface SmsAndroid {
@@ -228,6 +229,14 @@ export class SmsService {
             now,
           ]
         );
+
+        // Check for anomalous spending
+        anomalyDetector.checkAndNotify(
+          parsed.amount,
+          parsed.type,
+          categoryId,
+          parsed.merchant || null
+        ).catch(() => {}); // Fire and forget
 
         // Save balance if extracted
         if (parsed.balance !== undefined) {
