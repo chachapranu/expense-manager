@@ -12,12 +12,14 @@
     "local": {
       "distribution": "internal",
       "android": {
-        "buildType": "apk"
+        "buildType": "apk",
+        "enableProguardInReleaseBuilds": true
       }
     },
     "production": {
       "android": {
-        "buildType": "app-bundle"
+        "buildType": "app-bundle",
+        "enableProguardInReleaseBuilds": true
       }
     }
   }
