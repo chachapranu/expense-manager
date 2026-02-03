@@ -220,7 +220,7 @@ export default function SmsSyncScreen() {
               Expense Manager can parse SMS from:
             </Text>
             <View style={styles.bankList}>
-              {['HDFC Bank', 'ICICI Bank', 'SBI', 'HSBC', 'Axis Bank', 'Kotak', 'UPI (GPay, PhonePe, Paytm)', '40+ other banks via fallback'].map(
+              {['HDFC Bank', 'ICICI Bank', 'SBI', 'HSBC', 'Axis Bank', 'Kotak', 'Yes Bank', 'IndusInd Bank', 'Bank of Baroda', 'PNB', 'Federal Bank', 'UPI (GPay, PhonePe, Paytm)', '40+ other banks via fallback'].map(
                 (bank) => (
                   <View key={bank} style={styles.bankItem}>
                     <MaterialCommunityIcons

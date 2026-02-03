@@ -5,6 +5,12 @@ import { ICICIParser } from './ICICIParser';
 import { SBIParser } from './SBIParser';
 import { HSBCParser } from './HSBCParser';
 import { AxisParser } from './AxisParser';
+import { KotakParser } from './KotakParser';
+import { YesBankParser } from './YesBankParser';
+import { IndusIndParser } from './IndusIndParser';
+import { BOBParser } from './BOBParser';
+import { PNBParser } from './PNBParser';
+import { FederalBankParser } from './FederalBankParser';
 import { UPIParser } from './UPIParser';
 
 export { BaseBankParser } from './BaseBankParser';
@@ -13,16 +19,28 @@ export { ICICIParser } from './ICICIParser';
 export { SBIParser } from './SBIParser';
 export { HSBCParser } from './HSBCParser';
 export { AxisParser } from './AxisParser';
+export { KotakParser } from './KotakParser';
+export { YesBankParser } from './YesBankParser';
+export { IndusIndParser } from './IndusIndParser';
+export { BOBParser } from './BOBParser';
+export { PNBParser } from './PNBParser';
+export { FederalBankParser } from './FederalBankParser';
 export { UPIParser } from './UPIParser';
 
 // All available parsers
-// HSBC and Axis before UPI since some Axis SMS contain "UPI" in body but sender is AXISBK
+// Bank-specific parsers before UPI since some bank SMS contain "UPI" in body but sender is bank-specific
 export const parsers: BaseBankParser[] = [
   new HDFCParser(),
   new ICICIParser(),
   new SBIParser(),
   new HSBCParser(),
   new AxisParser(),
+  new KotakParser(),
+  new YesBankParser(),
+  new IndusIndParser(),
+  new BOBParser(),
+  new PNBParser(),
+  new FederalBankParser(),
   new UPIParser(),
 ];
 
