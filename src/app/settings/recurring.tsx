@@ -22,6 +22,7 @@ import type { RecurringFrequency, TransactionType } from '../../types';
 import { useCategoryStore } from '../../store/useCategoryStore';
 import { EmptyState } from '../../components/common/EmptyState';
 import { LoadingScreen } from '../../components/common/LoadingScreen';
+import { recurringDetector, RecurringSuggestion } from '../../services/recurring/RecurringDetector';
 
 export default function RecurringScreen() {
   const { categories, loadCategories, getCategoryById } = useCategoryStore();
@@ -37,6 +38,8 @@ export default function RecurringScreen() {
   const [categoryId, setCategoryId] = useState<string>('');
   const [dayOfMonth, setDayOfMonth] = useState('1');
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [suggestions, setSuggestions] = useState<RecurringSuggestion[]>([]);
   const [isSaving, setIsSaving] = useState(false);
 
   const loadRules = async () => {
@@ -61,6 +64,23 @@ export default function RecurringScreen() {
   );
 
   const selectedCategory = categoryId ? getCategoryById(categoryId) : null;
+
+  const handleDetectPatterns = () => {
+    const detected = recurringDetector.detect();
+    setSuggestions(detected);
+    setShowSuggestions(true);
+  };
+
+  const handleCreateFromSuggestion = (suggestion: RecurringSuggestion) => {
+    setShowSuggestions(false);
+    setName(suggestion.merchant);
+    setAmount(suggestion.averageAmount.toString());
+    setType('debit');
+    setFrequency(suggestion.frequency);
+    setCategoryId('');
+    setDayOfMonth('1');
+    setShowAddModal(true);
+  };
 
   const getNextDueDate = (): Date => {
     const now = new Date();
@@ -330,12 +350,22 @@ export default function RecurringScreen() {
         </ScrollView>
       )}
 
-      <FAB
-        icon="plus"
-        style={styles.fab}
-        onPress={() => setShowAddModal(true)}
-        color="#fff"
-      />
+      <View style={styles.fabRow}>
+        <FAB
+          icon="magnify"
+          style={styles.detectFab}
+          onPress={handleDetectPatterns}
+          color="#fff"
+          size="small"
+          label="Detect"
+        />
+        <FAB
+          icon="plus"
+          style={styles.fab}
+          onPress={() => setShowAddModal(true)}
+          color="#fff"
+        />
+      </View>
 
       {/* Add/Edit Modal */}
       <Portal>
@@ -464,6 +494,42 @@ export default function RecurringScreen() {
           </ScrollView>
         </Modal>
 
+        {/* Suggestions Modal */}
+        <Modal
+          visible={showSuggestions}
+          onDismiss={() => setShowSuggestions(false)}
+          contentContainerStyle={styles.pickerModalContent}
+        >
+          <Text style={styles.modalTitle}>Detected Patterns</Text>
+          {suggestions.length === 0 ? (
+            <View style={styles.emptySuggestions}>
+              <Text style={styles.emptySuggestionsText}>
+                No recurring patterns found. Add more transactions to improve detection.
+              </Text>
+            </View>
+          ) : (
+            <ScrollView style={styles.categoryList}>
+              {suggestions.map((suggestion) => (
+                <List.Item
+                  key={suggestion.merchant}
+                  title={suggestion.merchant}
+                  description={`~${formatCurrency(suggestion.averageAmount)} • ${suggestion.frequency} • ${suggestion.count} transactions`}
+                  onPress={() => handleCreateFromSuggestion(suggestion)}
+                  right={() => (
+                    <Button
+                      mode="text"
+                      compact
+                      onPress={() => handleCreateFromSuggestion(suggestion)}
+                    >
+                      Create
+                    </Button>
+                  )}
+                />
+              ))}
+            </ScrollView>
+          )}
+        </Modal>
+
         {/* Category Picker */}
         <Modal
           visible={showCategoryPicker}
@@ -580,11 +646,28 @@ const styles = StyleSheet.create({
   bottomSpacer: {
     height: 80,
   },
-  fab: {
+  fabRow: {
     position: 'absolute',
     right: 16,
     bottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  detectFab: {
+    backgroundColor: Colors.secondary,
+  },
+  fab: {
     backgroundColor: Colors.primary,
+  },
+  emptySuggestions: {
+    padding: 24,
+    alignItems: 'center',
+  },
+  emptySuggestionsText: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    textAlign: 'center',
   },
   modalContent: {
     backgroundColor: Colors.surface,
