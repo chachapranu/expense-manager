@@ -33,6 +33,7 @@
       "expo-font",
       "expo-local-authentication",
       "expo-notifications",
+      "expo-speech-recognition",
       ["react-native-android-widget", {
         "widgets": [
           {

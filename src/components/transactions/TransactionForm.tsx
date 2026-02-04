@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, ScrollView } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   TextInput,
   Button,
@@ -12,6 +13,7 @@ import {
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Colors } from '../../constants';
+import { SpeechToTextButton } from '../common/SpeechToTextButton';
 import { useCategoryStore } from '../../store/useCategoryStore';
 import type { TransactionType } from '../../types';
 import type { CategoryRow } from '../../services/database';
@@ -40,6 +42,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
   isLoading = false,
   submitLabel = 'Save',
 }) => {
+  const insets = useSafeAreaInsets();
   const { categories, loadCategories } = useCategoryStore();
   const [formData, setFormData] = useState<TransactionFormData>({
     amount: initialData?.amount || '',
@@ -95,7 +98,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
   };
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: insets.bottom + 16 }} showsVerticalScrollIndicator={false}>
       <SegmentedButtons
         value={formData.type}
         onValueChange={(value) =>
@@ -171,15 +174,25 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
         />
       ) : null}
 
-      <TextInput
-        mode="outlined"
-        label="Notes (optional)"
-        value={formData.notes}
-        onChangeText={(text) => setFormData({ ...formData, notes: text })}
-        multiline
-        numberOfLines={3}
-        style={styles.input}
-      />
+      <View style={styles.notesRow}>
+        <TextInput
+          mode="outlined"
+          label="Notes (optional)"
+          value={formData.notes}
+          onChangeText={(text) => setFormData({ ...formData, notes: text })}
+          multiline
+          numberOfLines={3}
+          style={[styles.input, styles.notesInput]}
+        />
+        <SpeechToTextButton
+          onResult={(text) =>
+            setFormData({
+              ...formData,
+              notes: formData.notes ? `${formData.notes} ${text}` : text,
+            })
+          }
+        />
+      </View>
 
       <View style={styles.buttonContainer}>
         <Button mode="outlined" onPress={onCancel} style={styles.button}>
@@ -263,11 +276,17 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     height: 48,
   },
+  notesRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  notesInput: {
+    flex: 1,
+  },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 16,
-    marginBottom: 32,
   },
   button: {
     flex: 1,

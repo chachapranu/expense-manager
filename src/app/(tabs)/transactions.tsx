@@ -176,6 +176,7 @@ export default function TransactionsScreen() {
         refreshing={isLoading}
         onRefresh={loadTransactions}
         onAddPress={handleAddTransaction}
+        onEdit={(id) => router.push(`/transaction/${id}?edit=true`)}
       />
 
       <FAB

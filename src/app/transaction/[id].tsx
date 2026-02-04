@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Alert, ScrollView } from 'react-native';
 import { Text, Surface, Button, Divider } from 'react-native-paper';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Colors } from '../../constants';
 import { formatCurrency, formatDateTime } from '../../utils/formatters';
@@ -9,15 +10,17 @@ import { useTransactionStore } from '../../store/useTransactionStore';
 import { useCategoryStore } from '../../store/useCategoryStore';
 import { LoadingScreen } from '../../components/common/LoadingScreen';
 import { TransactionForm } from '../../components/transactions/TransactionForm';
+import { SpeechToTextButton } from '../../components/common/SpeechToTextButton';
 
 export default function TransactionDetailScreen() {
   const router = useRouter();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, edit } = useLocalSearchParams<{ id: string; edit?: string }>();
+  const insets = useSafeAreaInsets();
   const { deleteTransaction, updateTransaction, getTransactionById, loadTransactions } = useTransactionStore();
   const { getCategoryById, loadCategories } = useCategoryStore();
 
   const [isLoading, setIsLoading] = useState(true);
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(edit === 'true');
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -117,7 +120,7 @@ export default function TransactionDetailScreen() {
     : null;
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}>
       <Surface style={styles.card} elevation={1}>
         {/* Amount */}
         <View style={styles.amountSection}>
@@ -202,19 +205,25 @@ export default function TransactionDetailScreen() {
           </View>
         </View>
 
-        {transaction.notes ? (
-          <View style={styles.detailRow}>
-            <MaterialCommunityIcons
-              name="note-text"
-              size={24}
-              color={Colors.textSecondary}
-            />
-            <View style={styles.detailContent}>
-              <Text style={styles.detailLabel}>Notes</Text>
-              <Text style={styles.detailValue}>{transaction.notes}</Text>
-            </View>
+        <View style={styles.detailRow}>
+          <MaterialCommunityIcons
+            name="note-text"
+            size={24}
+            color={Colors.textSecondary}
+          />
+          <View style={styles.detailContent}>
+            <Text style={styles.detailLabel}>Notes</Text>
+            <Text style={styles.detailValue}>{transaction.notes || 'No notes'}</Text>
           </View>
-        ) : null}
+          <SpeechToTextButton
+            onResult={async (text) => {
+              const newNotes = transaction.notes ? `${transaction.notes} ${text}` : text;
+              await updateTransaction(id, { notes: newNotes });
+              await loadTransactions();
+            }}
+            size={20}
+          />
+        </View>
 
         <View style={styles.detailRow}>
           <MaterialCommunityIcons
@@ -356,7 +365,6 @@ const styles = StyleSheet.create({
   actions: {
     flexDirection: 'row',
     padding: 16,
-    paddingBottom: 32,
   },
   actionButton: {
     flex: 1,

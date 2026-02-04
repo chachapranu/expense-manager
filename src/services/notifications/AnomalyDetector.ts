@@ -1,6 +1,8 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { getDatabase } from '../database';
+import { useSettingsStore } from '../../store/useSettingsStore';
+import type { NotificationTier } from '../../store/useSettingsStore';
 
 export class AnomalyDetector {
   async checkAndNotify(
@@ -11,6 +13,18 @@ export class AnomalyDetector {
   ): Promise<void> {
     if (type !== 'debit') return;
 
+    // Check anomaly-based alerts
+    await this.checkAnomalyAlert(amount, categoryId, merchant);
+
+    // Check amount-based tier alerts
+    await this.checkTierAlerts(amount, merchant);
+  }
+
+  private async checkAnomalyAlert(
+    amount: number,
+    categoryId: string | null,
+    merchant: string | null
+  ): Promise<void> {
     const db = getDatabase();
     const ninetyDaysAgo = Date.now() - 90 * 24 * 60 * 60 * 1000;
 
@@ -43,18 +57,45 @@ export class AnomalyDetector {
       const label = merchant || 'transaction';
       await this.sendNotification(
         'Unusual Spending Alert',
-        `₹${amount.toLocaleString('en-IN')} at ${label} is significantly higher than your average of ₹${Math.round(avgResult.avg_amount).toLocaleString('en-IN')}`
+        `₹${amount.toLocaleString('en-IN')} at ${label} is significantly higher than your average of ₹${Math.round(avgResult.avg_amount).toLocaleString('en-IN')}`,
+        'anomaly-alerts'
       );
     }
   }
 
-  private async sendNotification(title: string, body: string): Promise<void> {
+  private async checkTierAlerts(amount: number, merchant: string | null): Promise<void> {
+    const tiers = useSettingsStore.getState().notificationTiers;
+    const enabledTiers = tiers
+      .filter((t) => t.enabled && amount >= t.minAmount)
+      .sort((a, b) => b.minAmount - a.minAmount);
+
+    if (enabledTiers.length === 0) return;
+
+    // Use the highest matching tier
+    const tier = enabledTiers[0];
+    const label = merchant || 'transaction';
+
+    await this.sendNotification(
+      `${tier.label} Alert`,
+      `₹${amount.toLocaleString('en-IN')} ${label} exceeds your ₹${tier.minAmount.toLocaleString('en-IN')} threshold`,
+      'amount-alerts',
+      tier.sound
+    );
+  }
+
+  private async sendNotification(
+    title: string,
+    body: string,
+    channelId: string = 'anomaly-alerts',
+    sound: boolean = true
+  ): Promise<void> {
     try {
       await Notifications.scheduleNotificationAsync({
         content: {
           title,
           body,
-          sound: true,
+          sound,
+          ...(Platform.OS === 'android' ? { channelId } : {}),
         },
         trigger: null, // Immediate
       });
@@ -67,6 +108,12 @@ export class AnomalyDetector {
     if (Platform.OS === 'android') {
       await Notifications.setNotificationChannelAsync('anomaly-alerts', {
         name: 'Spending Alerts',
+        importance: Notifications.AndroidImportance.HIGH,
+        sound: 'default',
+      });
+      await Notifications.setNotificationChannelAsync('amount-alerts', {
+        name: 'Amount Alerts',
+        description: 'Alerts when transactions exceed configured thresholds',
         importance: Notifications.AndroidImportance.HIGH,
         sound: 'default',
       });

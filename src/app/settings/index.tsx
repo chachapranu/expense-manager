@@ -52,6 +52,19 @@ export default function SettingsScreen() {
       <Divider />
 
       <List.Section>
+        <List.Subheader>Notifications</List.Subheader>
+        <List.Item
+          title="Notification Alerts"
+          description="Amount-based notification tiers"
+          left={(props) => <List.Icon {...props} icon="bell-ring" />}
+          right={(props) => <List.Icon {...props} icon="chevron-right" />}
+          onPress={() => router.push('/settings/notifications' as any)}
+        />
+      </List.Section>
+
+      <Divider />
+
+      <List.Section>
         <List.Subheader>SMS Settings</List.Subheader>
         <List.Item
           title="Sync SMS"

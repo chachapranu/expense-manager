@@ -9,6 +9,7 @@ import { useTransactionStore } from '../../store/useTransactionStore';
 import { useCategoryStore } from '../../store/useCategoryStore';
 import { useBudgetStore } from '../../store/useBudgetStore';
 import { TransactionItem } from '../../components/transactions/TransactionItem';
+import { MarqueeText } from '../../components/common/MarqueeText';
 import { useFocusEffect } from 'expo-router';
 import { smsService } from '../../services/sms/SmsService';
 
@@ -178,9 +179,9 @@ export default function DashboardScreen() {
                   ]}
                 >
                   <Text style={styles.merchantRank}>#{index + 1}</Text>
-                  <Text style={styles.merchantName} numberOfLines={1}>
+                  <MarqueeText style={styles.merchantName}>
                     {item.merchant}
-                  </Text>
+                  </MarqueeText>
                   <Text style={styles.merchantAmount}>
                     {formatCurrency(item.total)}
                   </Text>
@@ -273,7 +274,7 @@ export default function DashboardScreen() {
             </Surface>
           ) : (
             recentTransactions.map((transaction) => (
-              <TransactionItem key={transaction.id} transaction={transaction} />
+              <TransactionItem key={transaction.id} transaction={transaction} onEdit={(id) => router.push(`/transaction/${id}?edit=true`)} />
             ))
           )}
         </View>

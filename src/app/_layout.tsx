@@ -156,6 +156,10 @@ export default function RootLayout() {
               name="settings/auto-categorization"
               options={{ title: 'Auto-Categorization' }}
             />
+            <Stack.Screen
+              name="settings/notifications"
+              options={{ title: 'Notification Alerts' }}
+            />
           </Stack>
         </PaperProvider>
       </SafeAreaProvider>

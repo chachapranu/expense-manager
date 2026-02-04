@@ -7,19 +7,26 @@
       "distribution": "internal",
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "EXPO_NO_TELEMETRY": "1"
       }
     },
     "local": {
       "distribution": "internal",
       "android": {
-        "buildType": "apk",
-        "enableProguardInReleaseBuilds": true
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_NO_TELEMETRY": "1"
       }
     },
     "production": {
       "android": {
-        "buildType": "app-bundle",
-        "enableProguardInReleaseBuilds": true
+        "buildType": "app-bundle"
+      },
+      "env": {
+        "EXPO_NO_TELEMETRY": "1"
       }
     }
   }

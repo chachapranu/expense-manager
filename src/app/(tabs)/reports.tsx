@@ -13,6 +13,7 @@ import { Colors, useThemeColors } from '../../constants';
 import { formatCurrency } from '../../utils/formatters';
 import { useTransactionStore } from '../../store/useTransactionStore';
 import { useCategoryStore } from '../../store/useCategoryStore';
+import { MarqueeText } from '../../components/common/MarqueeText';
 import { EmptyState } from '../../components/common/EmptyState';
 import type { CategoryBreakdown } from '../../types';
 
@@ -165,9 +166,9 @@ export default function ReportsScreen() {
                   { backgroundColor: category.categoryColor },
                 ]}
               />
-              <Text style={styles.categoryLabel} numberOfLines={1}>
+              <MarqueeText style={styles.categoryLabel}>
                 {category.categoryName}
-              </Text>
+              </MarqueeText>
             </View>
             <View style={styles.categoryStats}>
               <Text style={styles.categoryAmount}>

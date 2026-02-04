@@ -7,18 +7,19 @@ import { useRouter } from 'expo-router';
 import { Colors, useThemeColors } from '../../constants';
 import { formatDate, formatCurrency } from '../../utils/formatters';
 import { useCategoryStore } from '../../store/useCategoryStore';
+import { MarqueeText } from '../common/MarqueeText';
 import type { TransactionRow } from '../../services/database';
 
 interface TransactionItemProps {
   transaction: TransactionRow;
   onDelete?: (id: string) => void;
-  onChangeCategory?: (id: string) => void;
+  onEdit?: (id: string) => void;
 }
 
 export const TransactionItem: React.FC<TransactionItemProps> = React.memo(({
   transaction,
   onDelete,
-  onChangeCategory,
+  onEdit,
 }) => {
   const router = useRouter();
   const { getCategoryById } = useCategoryStore();
@@ -53,9 +54,9 @@ export const TransactionItem: React.FC<TransactionItemProps> = React.memo(({
     );
   };
 
-  const handleChangeCategory = () => {
+  const handleEdit = () => {
     swipeableRef.current?.close();
-    onChangeCategory?.(transaction.id);
+    router.push(`/transaction/${transaction.id}?edit=true`);
   };
 
   const renderRightActions = (
@@ -89,10 +90,10 @@ export const TransactionItem: React.FC<TransactionItemProps> = React.memo(({
     });
 
     return (
-      <Pressable onPress={handleChangeCategory} style={styles.categoryAction}>
+      <Pressable onPress={handleEdit} style={styles.editAction}>
         <Animated.View style={[styles.actionContent, { transform: [{ scale }] }]}>
-          <MaterialCommunityIcons name="shape" size={24} color="#fff" />
-          <Text style={styles.actionText}>Category</Text>
+          <MaterialCommunityIcons name="pencil" size={24} color="#fff" />
+          <Text style={styles.actionText}>Edit</Text>
         </Animated.View>
       </Pressable>
     );
@@ -115,16 +116,16 @@ export const TransactionItem: React.FC<TransactionItemProps> = React.memo(({
         </View>
 
         <View style={styles.content}>
-          <Text style={[styles.merchant, { color: colors.text }]} numberOfLines={1}>
+          <MarqueeText style={[styles.merchant, { color: colors.text }]}>
             {transaction.merchant || category?.name || 'Unknown'}
-          </Text>
-          <Text style={[styles.details, { color: colors.textSecondary }]} numberOfLines={1}>
-            {category?.name || 'Uncategorized'} • {formatDate(transaction.date)}
-          </Text>
+          </MarqueeText>
+          <MarqueeText style={[styles.details, { color: colors.textSecondary }]}>
+            {`${category?.name || 'Uncategorized'} • ${formatDate(transaction.date)}`}
+          </MarqueeText>
           {transaction.notes ? (
-            <Text style={styles.notes} numberOfLines={1}>
+            <MarqueeText style={styles.notes}>
               {transaction.notes}
-            </Text>
+            </MarqueeText>
           ) : null}
         </View>
 
@@ -158,12 +159,12 @@ export const TransactionItem: React.FC<TransactionItemProps> = React.memo(({
     </Pressable>
   );
 
-  if (onDelete || onChangeCategory) {
+  if (onDelete || onEdit) {
     return (
       <Swipeable
         ref={swipeableRef}
         renderRightActions={onDelete ? renderRightActions : undefined}
-        renderLeftActions={onChangeCategory ? renderLeftActions : undefined}
+        renderLeftActions={onEdit ? renderLeftActions : undefined}
         overshootRight={false}
         overshootLeft={false}
       >
@@ -231,7 +232,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 12,
     borderBottomRightRadius: 12,
   },
-  categoryAction: {
+  editAction: {
     backgroundColor: '#555555',
     justifyContent: 'center',
     alignItems: 'center',

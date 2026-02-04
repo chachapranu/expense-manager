@@ -12,7 +12,7 @@ interface TransactionListProps {
   refreshing?: boolean;
   onRefresh?: () => void;
   onAddPress?: () => void;
-  onChangeCategory?: (id: string) => void;
+  onEdit?: (id: string) => void;
   ListHeaderComponent?: React.ReactElement;
 }
 
@@ -21,7 +21,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
   refreshing = false,
   onRefresh,
   onAddPress,
-  onChangeCategory,
+  onEdit,
   ListHeaderComponent,
 }) => {
   const { deleteTransaction } = useTransactionStore();
@@ -36,10 +36,10 @@ export const TransactionList: React.FC<TransactionListProps> = ({
       <TransactionItem
         transaction={item}
         onDelete={handleDelete}
-        onChangeCategory={onChangeCategory}
+        onEdit={onEdit}
       />
     ),
-    [handleDelete, onChangeCategory]
+    [handleDelete, onEdit]
   );
 
   if (transactions.length === 0) {
