@@ -8,6 +8,7 @@ import { Colors, useThemeColors } from '../../constants';
 import { useTransactionStore } from '../../store/useTransactionStore';
 import { useCategoryStore } from '../../store/useCategoryStore';
 import { TransactionList } from '../../components/transactions/TransactionList';
+import { TopMerchants } from '../../components/transactions/TopMerchants';
 import type { TransactionType } from '../../types';
 
 export default function TransactionsScreen() {
@@ -177,6 +178,7 @@ export default function TransactionsScreen() {
         onRefresh={loadTransactions}
         onAddPress={handleAddTransaction}
         onEdit={(id) => router.push(`/transaction/${id}?edit=true`)}
+        ListHeaderComponent={<TopMerchants />}
       />
 
       <FAB

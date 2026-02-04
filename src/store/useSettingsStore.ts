@@ -19,22 +19,25 @@ const DEFAULT_TIERS: NotificationTier[] = [
 
 interface SettingsState {
   isDarkMode: boolean;
+  isBiometricEnabled: boolean;
   isLoaded: boolean;
   notificationTiers: NotificationTier[];
   loadSettings: () => Promise<void>;
   toggleDarkMode: () => Promise<void>;
+  toggleBiometric: () => Promise<void>;
   setNotificationTiers: (tiers: NotificationTier[]) => Promise<void>;
   updateNotificationTier: (id: string, updates: Partial<NotificationTier>) => Promise<void>;
   addNotificationTier: (tier: NotificationTier) => Promise<void>;
   removeNotificationTier: (id: string) => Promise<void>;
 }
 
-async function persistSettings(state: { isDarkMode: boolean; notificationTiers: NotificationTier[] }) {
+async function persistSettings(state: { isDarkMode: boolean; isBiometricEnabled: boolean; notificationTiers: NotificationTier[] }) {
   await AsyncStorage.setItem(SETTINGS_KEY, JSON.stringify(state));
 }
 
 export const useSettingsStore = create<SettingsState>((set, get) => ({
   isDarkMode: false,
+  isBiometricEnabled: true,
   isLoaded: false,
   notificationTiers: DEFAULT_TIERS,
 
@@ -45,6 +48,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         const settings = JSON.parse(stored);
         set({
           isDarkMode: settings.isDarkMode ?? false,
+          isBiometricEnabled: settings.isBiometricEnabled ?? true,
           notificationTiers: settings.notificationTiers ?? DEFAULT_TIERS,
           isLoaded: true,
         });
@@ -60,7 +64,17 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     const newValue = !get().isDarkMode;
     set({ isDarkMode: newValue });
     try {
-      await persistSettings({ isDarkMode: newValue, notificationTiers: get().notificationTiers });
+      await persistSettings({ isDarkMode: newValue, isBiometricEnabled: get().isBiometricEnabled, notificationTiers: get().notificationTiers });
+    } catch {
+      // Silently fail
+    }
+  },
+
+  toggleBiometric: async () => {
+    const newValue = !get().isBiometricEnabled;
+    set({ isBiometricEnabled: newValue });
+    try {
+      await persistSettings({ isDarkMode: get().isDarkMode, isBiometricEnabled: newValue, notificationTiers: get().notificationTiers });
     } catch {
       // Silently fail
     }
@@ -69,7 +83,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   setNotificationTiers: async (tiers) => {
     set({ notificationTiers: tiers });
     try {
-      await persistSettings({ isDarkMode: get().isDarkMode, notificationTiers: tiers });
+      await persistSettings({ isDarkMode: get().isDarkMode, isBiometricEnabled: get().isBiometricEnabled, notificationTiers: tiers });
     } catch {
       // Silently fail
     }
@@ -81,7 +95,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     );
     set({ notificationTiers: tiers });
     try {
-      await persistSettings({ isDarkMode: get().isDarkMode, notificationTiers: tiers });
+      await persistSettings({ isDarkMode: get().isDarkMode, isBiometricEnabled: get().isBiometricEnabled, notificationTiers: tiers });
     } catch {
       // Silently fail
     }
@@ -91,7 +105,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     const tiers = [...get().notificationTiers, tier];
     set({ notificationTiers: tiers });
     try {
-      await persistSettings({ isDarkMode: get().isDarkMode, notificationTiers: tiers });
+      await persistSettings({ isDarkMode: get().isDarkMode, isBiometricEnabled: get().isBiometricEnabled, notificationTiers: tiers });
     } catch {
       // Silently fail
     }
@@ -101,7 +115,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     const tiers = get().notificationTiers.filter((t) => t.id !== id);
     set({ notificationTiers: tiers });
     try {
-      await persistSettings({ isDarkMode: get().isDarkMode, notificationTiers: tiers });
+      await persistSettings({ isDarkMode: get().isDarkMode, isBiometricEnabled: get().isBiometricEnabled, notificationTiers: tiers });
     } catch {
       // Silently fail
     }

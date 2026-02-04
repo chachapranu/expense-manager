@@ -9,7 +9,6 @@ import { useTransactionStore } from '../../store/useTransactionStore';
 import { useCategoryStore } from '../../store/useCategoryStore';
 import { useBudgetStore } from '../../store/useBudgetStore';
 import { TransactionItem } from '../../components/transactions/TransactionItem';
-import { MarqueeText } from '../../components/common/MarqueeText';
 import { useFocusEffect } from 'expo-router';
 import { smsService } from '../../services/sms/SmsService';
 
@@ -25,7 +24,6 @@ export default function DashboardScreen() {
     getMonthlyTotal,
     getDailyTotal,
     getRecentTransactions,
-    getTopMerchants,
   } = useTransactionStore();
   const { loadCategories } = useCategoryStore();
   const { budgetsWithProgress, loadBudgets, getBudgetAlerts } = useBudgetStore();
@@ -80,7 +78,6 @@ export default function DashboardScreen() {
   const dailyExpense = useMemo(() => getDailyTotal('debit'), [transactions]);
   const balance = monthlyIncome - monthlyExpense;
   const recentTransactions = useMemo(() => getRecentTransactions(5), [transactions]);
-  const topMerchants = useMemo(() => getTopMerchants(5), [transactions]);
   const budgetAlerts = useMemo(() => getBudgetAlerts(), [budgetsWithProgress]);
 
   const handleAddTransaction = () => {
@@ -164,32 +161,6 @@ export default function DashboardScreen() {
           <Text style={[styles.todayLabel, { color: colors.textSecondary }]}>Today</Text>
           <Text style={[styles.todayAmount, { color: colors.expense }]}>{formatCurrency(dailyExpense)}</Text>
         </Surface>
-
-        {/* Top Merchants */}
-        {topMerchants.length > 0 ? (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Top Merchants</Text>
-            <Surface style={styles.merchantCard} elevation={1}>
-              {topMerchants.map((item, index) => (
-                <View
-                  key={item.merchant}
-                  style={[
-                    styles.merchantRow,
-                    index < topMerchants.length - 1 && styles.merchantRowBorder,
-                  ]}
-                >
-                  <Text style={styles.merchantRank}>#{index + 1}</Text>
-                  <MarqueeText style={styles.merchantName}>
-                    {item.merchant}
-                  </MarqueeText>
-                  <Text style={styles.merchantAmount}>
-                    {formatCurrency(item.total)}
-                  </Text>
-                </View>
-              ))}
-            </Surface>
-          </View>
-        ) : null}
 
         {/* Budget Alerts */}
         {budgetAlerts.length > 0 ? (
@@ -482,39 +453,6 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     marginTop: 4,
     textAlign: 'center',
-  },
-  merchantCard: {
-    marginHorizontal: 16,
-    padding: 12,
-    borderRadius: 12,
-    backgroundColor: Colors.surface,
-  },
-  merchantRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 10,
-  },
-  merchantRowBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  merchantRank: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.textSecondary,
-    width: 30,
-  },
-  merchantName: {
-    flex: 1,
-    fontSize: 14,
-    fontWeight: '500',
-    color: Colors.text,
-  },
-  merchantAmount: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.expense,
-    marginLeft: 8,
   },
   bottomSpacer: {
     height: 80,

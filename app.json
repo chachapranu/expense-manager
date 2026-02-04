@@ -16,6 +16,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
+        "monochromeImage": "./assets/monochrome-icon.png",
         "backgroundColor": "#2E7D32"
       },
       "package": "com.expensemanager.app",

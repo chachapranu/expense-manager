@@ -59,9 +59,12 @@ export default function RootLayout() {
         getDatabase();
         await loadSettings();
         AnomalyDetector.requestPermissions().catch(() => {});
-        const authed = await authenticate();
-        if (!authed) {
-          setAuthFailed(true);
+        const { isBiometricEnabled } = useSettingsStore.getState();
+        if (isBiometricEnabled) {
+          const authed = await authenticate();
+          if (!authed) {
+            setAuthFailed(true);
+          }
         }
       } catch (error) {
         console.error('Failed to initialize app:', error);

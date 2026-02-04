@@ -10,7 +10,7 @@ import { useSettingsStore } from '../../store/useSettingsStore';
 export default function SettingsScreen() {
   const router = useRouter();
   const colors = useThemeColors();
-  const { isDarkMode, toggleDarkMode } = useSettingsStore();
+  const { isDarkMode, toggleDarkMode, isBiometricEnabled, toggleBiometric } = useSettingsStore();
 
   const handleResetData = () => {
     Alert.alert(
@@ -45,6 +45,14 @@ export default function SettingsScreen() {
           left={(props) => <List.Icon {...props} icon="brightness-6" />}
           right={() => (
             <Switch value={isDarkMode} onValueChange={toggleDarkMode} />
+          )}
+        />
+        <List.Item
+          title="Fingerprint Lock"
+          description={isBiometricEnabled ? 'On' : 'Off'}
+          left={(props) => <List.Icon {...props} icon="fingerprint" />}
+          right={() => (
+            <Switch value={isBiometricEnabled} onValueChange={toggleBiometric} />
           )}
         />
       </List.Section>
